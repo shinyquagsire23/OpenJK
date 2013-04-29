@@ -12943,7 +12943,7 @@ qboolean WP_ForcePowerUsable( gentity_t *self, forcePowers_t forcePower, int ove
 	}
 	else
 	{
-		if ( forcePower == FP_SABERTHROW && (self->client->ps.saber[0].saberFlags&SFL_NOT_THROWABLE) )
+		if ( forcePower == FP_SABERTHROW && (self->client->ps.saber[0].saberFlags&SFL_NOT_THROWABLE || self->client->ps.saber[0].type == SABER_CLAW) )
 		{//cannot throw this kind of saber
 			return qfalse;
 		}

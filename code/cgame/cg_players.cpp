@@ -6026,8 +6026,8 @@ Ghoul2 Insert Start
 			return;
 		}
 
-		/*
-		if ( cent->gent->client->ps.saber[saberNum].type == SABER_CLAW )
+
+		/*if ( cent->gent->client->ps.saber[saberNum].type == SABER_CLAW )
 		{//hack - come off the forearm
 			int	fwdAxis = POSITIVE_Y;
 			int	rtAxis = POSITIVE_X;
@@ -6062,9 +6062,8 @@ Ghoul2 Insert Start
 			gi.G2API_GiveMeVectorFromMatrix(boltMatrix, (Eorientations)fwdAxis, axis_[0]);
 			gi.G2API_GiveMeVectorFromMatrix(boltMatrix, (Eorientations)rtAxis, axis_[1]);//right
 			gi.G2API_GiveMeVectorFromMatrix(boltMatrix, (Eorientations)upAxis, axis_[2]);//up
-		}
+		}*/
 		else
-		*/
 		{
 			// figure out where the actual model muzzle is
 
