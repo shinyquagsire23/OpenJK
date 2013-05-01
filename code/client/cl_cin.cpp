@@ -78,7 +78,7 @@ typedef struct {
 	byte				file[65536];
 	short				sqrTable[256];
 
-	unsigned int		mcomp[256];
+	int		mcomp[256];
 	unsigned short		vq2[256*16*4];
 	unsigned short		vq4[256*64*4];
 	unsigned short		vq8[256*256*4];
