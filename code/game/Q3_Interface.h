@@ -248,6 +248,7 @@ typedef enum //# setType_e
 	SET_FORCE_MIND_TRICK,//## %t="BOOL_TYPES" # Causes this ent to do a jedi mind trick at whatever level of mind trick they have (may not do anything for NPCs?)
 	SET_FORCE_GRIP,//## %t="BOOL_TYPES" # Causes this ent to grip their enemy at whatever level of grip they have (will grip until scripted to stop)
 	SET_FORCE_LIGHTNING,//## %t="BOOL_TYPES" # Causes this ent to lightning at whatever level of lightning they have (will lightning until scripted to stop)
+	SET_FORCE_FLAME,//## %t="BOOL_TYPES" # Causes this ent to lightning at whatever level of lightning they have (will lightning until scripted to stop)
 	SET_FORCE_SABERTHROW,//## %t="BOOL_TYPES" # Causes this ent to throw their saber at whatever level of saber throw they have (will throw saber until scripted to stop)
 	SET_FORCE_RAGE,//## %t="BOOL_TYPES" # Causes this ent to go into force rage at whatever level of force rage they have
 	SET_FORCE_PROTECT,//## %t="BOOL_TYPES" # Causes this ent to start a force protect at whatever level of force protect they have

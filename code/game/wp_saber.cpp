@@ -131,6 +131,7 @@ extern qboolean Boba_Flying( gentity_t *self );
 extern void JET_FlyStart( gentity_t *self );
 extern void Boba_DoFlameThrower( gentity_t *self );
 extern void Boba_StopFlameThrower( gentity_t *self );
+extern void Boba_FireFlameThrower( gentity_t *self );
 
 extern Vehicle_t *G_IsRidingVehicle( gentity_t *ent );
 extern int SaberDroid_PowerLevelForSaberAnim( gentity_t *self );
@@ -189,6 +190,7 @@ int forcePowerDarkLight[NUM_FORCE_POWERS] = //0 == neutral
 	FORCE_LIGHTSIDE,//FP_ABSORB,//duration
 	FORCE_DARKSIDE,//FP_DRAIN,//hold/duration
 	0,//FP_SEE,//duration
+	FORCE_DARKSIDE,//FP_FLAME,//hold/duration
 	//NUM_FORCE_POWERS
 };
 
@@ -210,7 +212,8 @@ int forcePowerNeeded[NUM_FORCE_POWERS] =
 	30,//FP_PROTECT,//duration - protect against physical/energy (level 1 stops blaster/energy bolts, level 2 stops projectiles, level 3 protects against explosions)
 	30,//FP_ABSORB,//duration - protect against dark force powers (grip, lightning, drain)
 	1,//FP_DRAIN,//hold/duration - drain force power for health
-	20//FP_SEE,//duration - detect/see hidden enemies
+	20,//FP_SEE,//duration - detect/see hidden enemies
+	1//FP_FLAME
 	//NUM_FORCE_POWERS
 };
 
@@ -335,6 +338,8 @@ float saberAnimSpeedMod[NUM_FORCE_POWER_LEVELS] =
 	1.0f,
 	2.0f
 };
+
+
 
 stringID_table_t SaberStyleTable[] =
 {
@@ -13213,6 +13218,23 @@ void WP_ForcePowerStop( gentity_t *self, forcePowers_t forcePower )
 			self->s.loopSound = 0;
 		}
 		break;
+	case FP_FLAME:
+		if ( self->NPC )
+		{
+			TIMER_Set( self, "holdLightning", -level.time );
+		}
+		if ( self->client->ps.torsoAnim == BOTH_FORCELIGHTNING_HOLD
+				|| self->client->ps.torsoAnim == BOTH_FORCELIGHTNING_START )
+		{
+			NPC_SetAnim( self, SETANIM_TORSO, BOTH_FORCELIGHTNING_RELEASE, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
+		}
+		else if ( self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_HOLD
+				|| self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_START )
+		{
+			NPC_SetAnim( self, SETANIM_TORSO, BOTH_FORCE_2HANDEDLIGHTNING_RELEASE, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
+		}
+		self->client->ps.forcePowerDebounce[FP_FLAME] = level.time + 1000;//FIXME: define?
+		break;
 	case FP_RAGE:
 		self->client->ps.forceRageRecoveryTime = level.time + 10000;//recover for 10 seconds 
 		if ( self->client->ps.forcePowerDuration[FP_RAGE] > level.time )
@@ -13915,6 +13937,33 @@ static void WP_ForcePowerRun( gentity_t *self, forcePowers_t forcePower, usercmd
 			WP_ForcePowerDrain( self, forcePower, 0 );
 		}
 		break;
+	case FP_FLAME:
+			if ( self->client->ps.forcePowerLevel[FP_FLAME] > FORCE_LEVEL_1 )
+			{//higher than level 1
+				if ( cmd->buttons & BUTTON_FORCE_FLAME )
+				{//holding it keeps it going
+					self->client->ps.forcePowerDuration[FP_FLAME] = level.time + 500;
+					//ForceLightningAnim( self );
+				}
+			}
+			if ( !WP_ForcePowerAvailable( self, forcePower, 0 ) )
+			{
+				WP_ForcePowerStop( self, forcePower );
+			}
+			else
+			{
+				//ForceShootLightning( self );
+				if ( self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING
+					|| self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_START
+					|| self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_HOLD
+					|| self->client->ps.torsoAnim == BOTH_FORCE_2HANDEDLIGHTNING_RELEASE )
+				{//jackin' 'em up, Palpatine-style
+					//extra cost
+					WP_ForcePowerDrain( self, forcePower, 0 );
+				}
+				WP_ForcePowerDrain( self, forcePower, 0 );
+			}
+			break;
 	//new Jedi Academy force powers
 	case FP_RAGE:
 		if (self->health < 1)
@@ -14348,20 +14397,32 @@ void WP_ForcePowersUpdate( gentity_t *self, usercmd_t *ucmd )
 		ForceGrip( self );
 	}
 
-	if ( !self->s.number 
-		&& self->client->NPC_class == CLASS_BOBAFETT )
+	if (!self->s.number && self->client->NPC_class == CLASS_BOBAFETT)
 	{//Boba Fett
-		if ( ucmd->buttons & BUTTON_FORCE_LIGHTNING )
+		if (ucmd->buttons & BUTTON_FORCE_LIGHTNING)
 		{//start flamethrower
 			Boba_DoFlameThrower( self );
-			return;
+			//return;
 		}
+
 		else if ( self->client->ps.forcePowerDuration[FP_LIGHTNING] )
 		{
 			self->client->ps.forcePowerDuration[FP_LIGHTNING] = 0;
 			Boba_StopFlameThrower( self );
-			return;
+			//return;
 		}
+
+	}
+	else if (ucmd->buttons & BUTTON_FORCE_FLAME)
+	{//start flamethrower
+		Boba_DoFlameThrower( self );
+		return;
+	}
+	else if ( self->client->ps.forcePowerDuration[FP_FLAME] || !BUTTON_FORCE_FLAME)
+	{
+		self->client->ps.forcePowerDuration[FP_FLAME] = 0;
+		Boba_StopFlameThrower( self );
+		//return;
 	}
 	else if ( ucmd->buttons & BUTTON_FORCE_LIGHTNING )
 	{
@@ -14458,7 +14519,7 @@ void WP_InitForcePowers( gentity_t *ent )
 		}
 		else
 		{
-			ent->client->ps.forcePowersKnown = ( 1 << FP_HEAL )|( 1 << FP_LEVITATION )|( 1 << FP_SPEED )|( 1 << FP_PUSH )|( 1 << FP_PULL )|( 1 << FP_TELEPATHY )|( 1 << FP_GRIP )|( 1 << FP_LIGHTNING)|( 1 << FP_SABERTHROW)|( 1 << FP_SABER_DEFENSE )|( 1 << FP_SABER_OFFENSE )|( 1<< FP_RAGE )|( 1<< FP_DRAIN )|( 1<< FP_PROTECT )|( 1<< FP_ABSORB )|( 1<< FP_SEE );
+			ent->client->ps.forcePowersKnown = ( 1 << FP_HEAL )|( 1 << FP_LEVITATION )|( 1 << FP_SPEED )|( 1 << FP_PUSH )|( 1 << FP_PULL )|( 1 << FP_TELEPATHY )|( 1 << FP_GRIP )|( 1 << FP_LIGHTNING)|( 1 << FP_FLAME )|( 1 << FP_SABERTHROW)|( 1 << FP_SABER_DEFENSE )|( 1 << FP_SABER_OFFENSE )|( 1<< FP_RAGE )|( 1<< FP_DRAIN )|( 1<< FP_PROTECT )|( 1<< FP_ABSORB )|( 1<< FP_SEE );
 			ent->client->ps.forcePowerLevel[FP_HEAL] = FORCE_LEVEL_2;
 			ent->client->ps.forcePowerLevel[FP_LEVITATION] = FORCE_LEVEL_2;
 			ent->client->ps.forcePowerLevel[FP_PUSH] = FORCE_LEVEL_1;
@@ -14466,6 +14527,7 @@ void WP_InitForcePowers( gentity_t *ent )
 			ent->client->ps.forcePowerLevel[FP_SABERTHROW] = FORCE_LEVEL_2;
 			ent->client->ps.forcePowerLevel[FP_SPEED] = FORCE_LEVEL_2;
 			ent->client->ps.forcePowerLevel[FP_LIGHTNING] = FORCE_LEVEL_1;
+			ent->client->ps.forcePowerLevel[FP_FLAME] = FORCE_LEVEL_1;
 			ent->client->ps.forcePowerLevel[FP_TELEPATHY] = FORCE_LEVEL_2;
 
 			ent->client->ps.forcePowerLevel[FP_RAGE] = FORCE_LEVEL_1;

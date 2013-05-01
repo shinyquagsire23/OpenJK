@@ -7446,6 +7446,7 @@ qboolean Jedi_InSpecialMove( void )
 				if ( helpingRosh )
 				{
 					WP_ForcePowerStop( NPC, FP_LIGHTNING );
+					WP_ForcePowerStop( NPC, FP_FLAME );
 					WP_ForcePowerStop( NPC, FP_DRAIN );
 					WP_ForcePowerStop( NPC, FP_GRIP );
 					NPC_FaceEntity( NPC->client->leader, qtrue );

@@ -43,6 +43,7 @@ const char *showLoadPowersName[] =
 	"SP_INGAME_SABER_THROW2",
 	"SP_INGAME_SABER_OFFENSE2",
 	"SP_INGAME_SABER_DEFENSE2",
+	"MAXMOD_FLAME2",
 	NULL,
 };
 

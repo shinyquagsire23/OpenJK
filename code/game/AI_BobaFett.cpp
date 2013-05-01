@@ -95,13 +95,15 @@ extern void		ChangeWeapon( gentity_t *ent, int newWeapon );
 extern void		WP_ResistForcePush( gentity_t *self, gentity_t *pusher, qboolean noPenalty );
 extern void		ForceJump( gentity_t *self, usercmd_t *ucmd );
 extern void		G_Knockdown( gentity_t *self, gentity_t *attacker, const vec3_t pushDir, float strength, qboolean breakSaberLock );
+extern void		WP_ForcePowerDrain( gentity_t *self, forcePowers_t forcePower, int overrideAmt );
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // External Data
 ////////////////////////////////////////////////////////////////////////////////////////
 extern cvar_t*		g_bobaDebug;
 
-
+float flameKnockback = 3;
+float flameDamage = 5;
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Boba Debug Output
@@ -467,6 +469,7 @@ void Boba_FireFlameThrower( gentity_t *self )
 	CVec3		traceMaxs(self->maxs);
 	gentity_t*	traceEnt	= NULL;  
 	int			damage		= Q_irand( BOBA_FLAMETHROWDAMAGEMIN, BOBA_FLAMETHROWDAMAGEMAX );
+	damage /= 5 - self->client->ps.forcePowerLevel[FP_FLAME];
 
   	AngleVectors(self->currentAngles, dir, 0, 0); 
 	dir[2] = 0.0f; 
@@ -490,9 +493,11 @@ void Boba_FireFlameThrower( gentity_t *self )
 		if (traceEnt->health>0)
 		{
 //			G_Knockdown( traceEnt, self, dir, Q_irand(200, 330), qfalse);
-			G_Throw(traceEnt, dir, 30);
+			G_Throw(traceEnt, dir, flameKnockback * self->client->ps.forcePowerLevel[FP_FLAME]);
 		}
 	}
+
+	WP_ForcePowerDrain( self, FP_FLAME, 0 );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -506,6 +511,7 @@ void Boba_StopFlameThrower( gentity_t *self )
 		G_StopEffect( G_EffectIndex("boba/fthrw"), self->playerModel, self->genericBolt3, self->s.number);
 		return;
 	}
+	G_StopEffect( G_EffectIndex( "boba/fthrw" ), self->playerModel, self->handLBolt, self->s.number);
 	if ((NPCInfo->aiFlags&NPCAI_FLAMETHROW))
 	{
 		self->NPC->aiFlags				&= ~NPCAI_FLAMETHROW;
@@ -555,13 +561,15 @@ void Boba_DoFlameThrower( gentity_t *self )
 	{
 		if ( self->client )
 		{
-			if ( !self->client->ps.forcePowerDuration[FP_LIGHTNING] )
+			if ( !self->client->ps.forcePowerDuration[FP_FLAME] )
 			{
+				self->genericBolt5 = self->handLBolt;
 				NPC_SetAnim( self, SETANIM_TORSO, BOTH_FORCELIGHTNING_HOLD, SETANIM_FLAG_OVERRIDE|SETANIM_FLAG_HOLD );
 	 			self->client->ps.torsoAnimTimer  =	BOBA_FLAMEDURATION;
 				G_SoundOnEnt( self, CHAN_WEAPON, "sound/weapons/boba/bf_flame.mp3" );
 				G_PlayEffect( G_EffectIndex("boba/fthrw"), self->playerModel, self->genericBolt3, self->s.number, self->s.origin, 1 );
-				self->client->ps.forcePowerDuration[FP_LIGHTNING] = 1;
+				G_PlayEffect( G_EffectIndex( "boba/fthrw" ), self->playerModel, self->genericBolt5, self->s.number, self->currentOrigin, 2, qtrue );
+				self->client->ps.forcePowerDuration[FP_FLAME] = 1;
 			}
 			Boba_FireFlameThrower( self );
 		}

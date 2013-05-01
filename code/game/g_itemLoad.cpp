@@ -428,6 +428,10 @@ static void IT_Tag(const char **holdBuf)
 	{
 		tag = FP_LIGHTNING;
 	}
+	else if (!Q_stricmp(tokenStr,"FP_FLAME"))
+	{
+		tag = FP_FLAME;
+	}
 	else if (!Q_stricmp(tokenStr,"FP_SABERTHROW"))	
 	{
 		tag = FP_SABERTHROW;

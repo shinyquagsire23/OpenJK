@@ -1597,6 +1597,7 @@ static void UI_CalcForceStatus(void)
 	
 	darkSide = pState->forcePowerLevel[FP_GRIP] + 
 		pState->forcePowerLevel[FP_LIGHTNING] +
+		pState->forcePowerLevel[FP_FLAME] +
 		pState->forcePowerLevel[FP_RAGE] +
 		pState->forcePowerLevel[FP_DRAIN];
 	
@@ -4430,7 +4431,7 @@ static void UI_UpdateFightingStyleChoices ( void )
 	}
 }
 
-#define MAX_POWER_ENUMS 16
+#define MAX_POWER_ENUMS 17
 
 typedef struct {
 	char	*title;
@@ -4457,7 +4458,8 @@ static powerEnum_t powerEnums[MAX_POWER_ENUMS] =
 			// Dark powers
 "drain",		FP_DRAIN,			
 "grip",			FP_GRIP,			
-"lightning",	FP_LIGHTNING,		
+"lightning",	FP_LIGHTNING,
+"flame",		FP_FLAME,
 "rage",			FP_RAGE				
 };
 
@@ -4722,6 +4724,7 @@ static void	UI_DemoSetForceLevels( void )
 		uiInfo.forcePowerLevel[FP_PROTECT]=0;
 		uiInfo.forcePowerLevel[FP_DRAIN]=0;
 		uiInfo.forcePowerLevel[FP_LIGHTNING]=0;
+		uiInfo.forcePowerLevel[FP_FLAME]=0;
 		uiInfo.forcePowerLevel[FP_RAGE]=0;
 	}
 	else
@@ -4741,13 +4744,14 @@ static void	UI_DemoSetForceLevels( void )
 		uiInfo.forcePowerLevel[FP_TELEPATHY]=1;
 		uiInfo.forcePowerLevel[FP_GRIP]=2;
 		uiInfo.forcePowerLevel[FP_LIGHTNING]=1;
+		uiInfo.forcePowerLevel[FP_FLAME]=2;
 		uiInfo.forcePowerLevel[FP_PROTECT]=1;
 				
 		// and set the rest to zero
 		
 		uiInfo.forcePowerLevel[FP_ABSORB]=0;
 		uiInfo.forcePowerLevel[FP_DRAIN]=0;
-		uiInfo.forcePowerLevel[FP_RAGE]=0;	
+		uiInfo.forcePowerLevel[FP_RAGE]=0;
 	}
 
 	if (pState)
@@ -4756,6 +4760,7 @@ static void	UI_DemoSetForceLevels( void )
 		uiInfo.forcePowerLevel[FP_TELEPATHY]=max(pState->forcePowerLevel[FP_TELEPATHY], uiInfo.forcePowerLevel[FP_TELEPATHY]);
 		uiInfo.forcePowerLevel[FP_GRIP]=max(pState->forcePowerLevel[FP_GRIP], uiInfo.forcePowerLevel[FP_GRIP]);
 		uiInfo.forcePowerLevel[FP_LIGHTNING]=max(pState->forcePowerLevel[FP_LIGHTNING], uiInfo.forcePowerLevel[FP_LIGHTNING]);
+		uiInfo.forcePowerLevel[FP_FLAME]=max(pState->forcePowerLevel[FP_FLAME], uiInfo.forcePowerLevel[FP_FLAME]);
 		uiInfo.forcePowerLevel[FP_PROTECT]=max(pState->forcePowerLevel[FP_PROTECT], uiInfo.forcePowerLevel[FP_PROTECT]);
 				
 		uiInfo.forcePowerLevel[FP_ABSORB]=max(pState->forcePowerLevel[FP_ABSORB], uiInfo.forcePowerLevel[FP_ABSORB]);

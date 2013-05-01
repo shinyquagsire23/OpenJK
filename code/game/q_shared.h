@@ -1630,6 +1630,7 @@ typedef enum
 	FP_ABSORB,//duration - protect against dark force powers (grip, lightning, drain - maybe push/pull, too?)
 	FP_DRAIN,//hold/duration - drain force power for health
 	FP_SEE,//duration - detect/see hidden enemies
+	FP_FLAME,//hold/duration
 	NUM_FORCE_POWERS
 } forcePowers_t;
 
@@ -2473,6 +2474,7 @@ typedef struct playerState_s {
 #define BUTTON_ALT_ATTACK	128
 
 #define	BUTTON_FORCE_FOCUS	256			// any key whatsoever
+#define BUTTON_FORCE_FLAME  512
 
 #define	MOVE_RUN			120			// if forwardmove or rightmove are >= MOVE_RUN,
 										// then BUTTON_WALKING should be set
@@ -2492,6 +2494,7 @@ typedef enum
 	GENCMD_FORCE_ABSORB,
 	GENCMD_FORCE_DRAIN,
 	GENCMD_FORCE_SEEING,
+	GENCMD_FORCE_FLAME,
 } genCmds_t;
 
 

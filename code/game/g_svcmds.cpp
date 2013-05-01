@@ -1161,6 +1161,11 @@ qboolean	ConsoleCommand( void ) {
 		Svcmd_ForceLightning_f();
 		return qtrue;
 	}
+	if ( Q_stricmp( cmd, "setForceFlame" ) == 0 )
+	{
+		Svcmd_ForceSetLevel_f( FP_FLAME );
+		return qtrue;
+	}
 	if ( Q_stricmp( cmd, "setMindTrick" ) == 0 )	
 	{
 		Svcmd_MindTrick_f();
@@ -1225,6 +1230,7 @@ qboolean	ConsoleCommand( void ) {
 		Svcmd_ForceSetLevel_f( FP_PROTECT );
 		Svcmd_ForceSetLevel_f( FP_ABSORB );
 		Svcmd_ForceSetLevel_f( FP_SEE );
+		Svcmd_ForceSetLevel_f( FP_FLAME );
 		for ( int i = SS_NONE+1; i < SS_NUM_SABER_STYLES; i++ )
 		{
 			g_entities[0].client->ps.saberStylesKnown |= (1<<i);

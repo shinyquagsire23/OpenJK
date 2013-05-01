@@ -148,6 +148,9 @@ static void IN_UseGivenForce(void)
 	case FP_LIGHTNING:
 		genCmdNum = GENCMD_FORCE_LIGHTNING;
 		break;
+	case FP_FLAME:
+		genCmdNum = GENCMD_FORCE_FLAME;
+		break;
 	case FP_RAGE:
 		genCmdNum = GENCMD_FORCE_RAGE;
 		break;

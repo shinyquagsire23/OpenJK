@@ -14412,6 +14412,9 @@ void PM_CheckForceUseButton( gentity_t *ent, usercmd_t *ucmd  )
 		case FP_LIGHTNING:
 			ucmd->buttons |= BUTTON_FORCE_LIGHTNING;
 			break;
+		case FP_FLAME:
+			ucmd->buttons |= BUTTON_FORCE_FLAME;
+			break;
 		case FP_DRAIN:
 			// FIXME! Failing at WP_ForcePowerUsable(). -AReis
 			ucmd->buttons |= BUTTON_FORCE_DRAIN;

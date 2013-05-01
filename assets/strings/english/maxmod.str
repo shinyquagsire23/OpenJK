@@ -1,0 +1,28 @@
+REFERENCE           NAME
+LANG_ENGLISH        "text"
+
+REFERENCE           FLAME2
+LANG_ENGLISH        "Flame Throw"
+
+REFERENCE           FORCE_FLAME
+NOTES               "Used in Force Setup screen."
+LANG_ENGLISH        "Flame Throw:"
+
+REFERENCE           FLAME
+NOTES               "Used in Force Setup screen."
+LANG_ENGLISH        "Flame Throw:"
+
+REFERENCE           FORCE_FLAME_LV1_DESC
+LANG_ENGLISH        "text"
+
+REFERENCE           FORCE_FLAME_DESC
+LANG_ENGLISH        "Force Flame Throw\nDuration: Variable\nArea Of Effect: All enemies\nEffect: Allows Jedi to spew fire from their hands at close range\n\n"
+
+REFERENCE           FORCE_FLAME_LVL1_DESC
+LANG_ENGLISH        "Rank 1 - Jedi launches weak fire causing a small amount of damage.\n"
+
+REFERENCE           FORCE_FLAME_LVL2_DESC
+LANG_ENGLISH        "Rank 2 - Jedi can create a larger more powerful flame that causes more damage.\n"
+
+REFERENCE           FORCE_FLAME_LVL3_DESC
+LANG_ENGLISH        "Rank 3 - Jedi creates a large flame that not only causes damage but has severe knockback."

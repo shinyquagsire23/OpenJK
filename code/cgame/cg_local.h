@@ -521,11 +521,11 @@ Ghoul2 Insert End
 } cg_t;
 
 
-#define MAX_SHOWPOWERS 12
+#define MAX_SHOWPOWERS 13
 extern int showPowers[MAX_SHOWPOWERS]; 
 extern char *showPowersName[MAX_SHOWPOWERS];
 extern int force_icons[NUM_FORCE_POWERS];
-#define MAX_DPSHOWPOWERS 16
+#define MAX_DPSHOWPOWERS 17
 
 //==============================================================================
 

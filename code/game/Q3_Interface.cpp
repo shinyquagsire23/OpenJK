@@ -9440,6 +9440,9 @@ extern void Saboteur_Cloak( gentity_t *self );
 	case SET_FORCE_LIGHTNING:
 		Q3_SetForcePower( entID, FP_LIGHTNING, (qboolean)(Q_stricmp("true",(char*)data)==0) );
 		break;
+	case SET_FORCE_FLAME:
+			Q3_SetForcePower( entID, FP_FLAME, (qboolean)(Q_stricmp("true",(char*)data)==0) );
+			break;
 	case SET_FORCE_SABERTHROW:
 		Q3_SetForcePower( entID, FP_SABERTHROW, (qboolean)(Q_stricmp("true",(char*)data)==0) );
 		break;
