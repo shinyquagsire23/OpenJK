@@ -160,9 +160,37 @@ if(BuildSPRdVanilla OR BuildJK2SPRdVanilla)
 		"${SPDir}/rd-common/tr_image_png.cpp"
 		"${SPDir}/rd-common/tr_noise.cpp"
 		"${SPDir}/rd-common/tr_public.h"
-		"${SPDir}/rd-common/tr_types.h")
+		"${SPDir}/rd-common/tr_types.h"
+		)
 	source_group("rd-common" FILES ${SPRDVanillaRdCommonFiles})
 	set(SPRDVanillaFiles ${SPRDVanillaFiles} ${SPRDVanillaRdCommonFiles})
+
+	# HMD files
+	set(SPRDVanillaHMDFiles
+		"${SPDir}/rd-vanilla/FactoryHmdDevice.cpp"
+		"${SPDir}/rd-vanilla/FactoryHmdDevice.h"
+		"${SPDir}/rd-vanilla/HmdDeviceMouse.cpp"
+		"${SPDir}/rd-vanilla/HmdDeviceMouse.h"
+		"${SPDir}/rd-vanilla/ClientHmd.cpp"
+		"${SPDir}/rd-vanilla/ClientHmd.h"
+		"${SPDir}/rd-vanilla/HmdDeviceOculusSdk.cpp"
+		"${SPDir}/rd-vanilla/HmdDeviceOculusSdk.h"
+		#"${SPDir}/rd-vanilla/HmdDeviceOpenHmd.cpp"
+		#"${SPDir}/rd-vanilla/HmdDeviceOpenHmd.h"
+		"${SPDir}/rd-vanilla/IHmdDevice.h"
+		"${SPDir}/rd-vanilla/HmdRendererOculus.cpp"
+		"${SPDir}/rd-vanilla/HmdRendererOculus.h"
+		#"${SPDir}/rd-vanilla/HmdRendererOculusOpenHmd.cpp"
+		#"${SPDir}/rd-vanilla/HmdRendererOculusOpenHmd.h"
+		"${SPDir}/rd-vanilla/HmdRendererOculusSdk.cpp"
+		"${SPDir}/rd-vanilla/HmdRendererOculusSdk.h"
+		"${SPDir}/rd-vanilla/IHmdRenderer.h"
+		"${SPDir}/rd-vanilla/PlatformInfo.h"
+		"${SPDir}/rd-vanilla/RenderTool.cpp"
+		"${SPDir}/rd-vanilla/RenderTool.h"
+		)
+	source_group("hmd" FILES ${SPRDVanillaHMDFiles})
+	set(SPRDVanillaFiles ${SPRDVanillaFiles} ${SPRDVanillaHMDFiles})
 
 	if(WIN32)
 		set(SPRDVanillaWin32Files

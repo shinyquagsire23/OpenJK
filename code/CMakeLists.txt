@@ -59,8 +59,19 @@ if(BuildSPEngine OR BuildJK2SPEngine)
 
 	if(NOT WIN32)
 		find_package(SDL2 REQUIRED)
+		find_package(LibOVR REQUIRED)
+		find_package(XRandR REQUIRED)
+		find_package(Xinerama REQUIRED)
+		find_package(X11 REQUIRED)
+		find_package(Librt REQUIRED)
+		#find_package(Xxf86vm REQUIRED)
 		set(SPEngineIncludeDirectories ${SPEngineIncludeDirectories} ${SDL2_INCLUDE_DIR})
 		set(SPEngineLibraries ${SPEngineLibraries} ${SDL2_LIBRARY})
+		set(SPEngineLibraries ${SPEngineLibraries} ${LIBOVR_LIBRARY})
+		set(SPEngineLibraries ${SPEngineLibraries} ${XRANDR_LIBRARY})
+		set(SPEngineLibraries ${SPEngineLibraries} ${XINERAMA_LIBRARY})
+		set(SPEngineLibraries ${SPEngineLibraries} ${LIBRT_LIBRARY})
+		set(SPEngineLibraries ${SPEngineLibraries} -lrt)
 	endif(NOT WIN32)
 
 	
@@ -204,6 +215,16 @@ if(BuildSPEngine OR BuildJK2SPEngine)
 	source_group("game" FILES ${SPEngineGameFiles})
 	set(SPEngineFiles ${SPEngineFiles} ${SPEngineGameFiles})
 
+	# HMD files
+	set(SPEngineHMDFiles
+		"${SPDir}/rd-vanilla/IHmdDevice.h"
+		"${SPDir}/rd-vanilla/GameHmd.cpp"
+		"${SPDir}/rd-vanilla/GameHmd.h"
+		"${SPDir}/rd-vanilla/ClientHmd.cpp"
+		"${SPDir}/rd-vanilla/ClientHmd.h"
+		)
+	source_group("hmd" FILES ${SPEngineHMDFiles})
+	set(SPRDVanillaFiles ${SPRDVanillaFiles} ${SPEngineHMDFiles})
 
 	# MP3 files
 	set(SPEngineMP3Files

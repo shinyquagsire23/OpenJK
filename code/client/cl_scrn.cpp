@@ -26,6 +26,8 @@ This file is part of Jedi Academy.
 #include "client.h"
 #include "client_ui.h"
 
+#include "../rd-vanilla/ClientHmd.h"
+
 extern console_t con;
 
 qboolean	scr_initialized;		// ready to draw
@@ -502,12 +504,13 @@ void SCR_UpdateScreen( void ) {
 	recursive = qtrue;
 
 	// if running in stereo, we need to draw the frame twice
-	if ( cls.glconfig.stereoEnabled ) {
+	//HMD - Force Stereo Rendering!
+	//if ( cls.glconfig.stereoEnabled ) {
 		SCR_DrawScreenField( STEREO_LEFT );
 		SCR_DrawScreenField( STEREO_RIGHT );
-	} else {
-		SCR_DrawScreenField( STEREO_CENTER );
-	}
+	//} else {
+		//SCR_DrawScreenField( STEREO_CENTER );
+	//}
 
 	if ( com_speeds->integer ) {
 		re.EndFrame( &time_frontend, &time_backend );

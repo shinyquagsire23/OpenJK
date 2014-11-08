@@ -30,6 +30,9 @@ This file is part of Jedi Academy.
 #include "../rd-common/tr_font.h"
 #include "tr_WorldEffects.h"
 
+#include "IHmdRenderer.h"
+#include "ClientHmd.h"
+
 glconfig_t	glConfig;
 glstate_t	glState;
 
@@ -271,41 +274,101 @@ PFNGLGETPROGRAMSTRINGARBPROC qglGetProgramStringARB = NULL;
 PFNGLISPROGRAMARBPROC qglIsProgramARB = NULL;
 #endif
 
+PFNglIsRenderbufferPROC qglIsRenderbuffer = NULL;
+PFNglBindRenderbufferPROC qglBindRenderbuffer = NULL;
+PFNglDeleteRenderbuffersPROC qglDeleteRenderbuffers = NULL;
+PFNglGenRenderbuffersPROC qglGenRenderbuffers = NULL;
+PFNglRenderbufferStoragePROC qglRenderbufferStorage = NULL;
+PFNglRenderbufferStorageMultisamplePROC qglRenderbufferStorageMultisample = NULL;
+PFNglGetRenderbufferParameterivPROC qglGetRenderbufferParameteriv = NULL;
+PFNglIsFramebufferPROC qglIsFramebuffer = NULL;
+PFNglGenFramebuffersPROC qglGenFramebuffers = NULL;
+PFNglBindFramebufferPROC qglBindFramebuffer = NULL;
+PFNglDeleteFramebuffersPROC qglDeleteFramebuffers = NULL;
+PFNglCheckFramebufferStatusPROC qglCheckFramebufferStatus = NULL;
+PFNglFramebufferTexture1DPROC qglFramebufferTexture1D = NULL;
+PFNglFramebufferTexture2DPROC qglFramebufferTexture2D = NULL;
+PFNglFramebufferTexture3DPROC qglFramebufferTexture3D = NULL;
+PFNglFramebufferTextureLayerPROC qglFramebufferTextureLayer = NULL;
+PFNglFramebufferRenderbufferPROC qglFramebufferRenderbuffer = NULL;
+PFNglGetFramebufferAttachmentParameterivPROC qglGetFramebufferAttachmentParameteriv = NULL;
+PFNglBlitFramebufferPROC qglBlitFramebuffer = NULL;
+PFNglGenerateMipmapPROC qglGenerateMipmap = NULL;
+
+PFNglCreateShaderObjectARBPROC qglCreateShaderObjectARB = NULL;
+PFNglShaderSourceARBPROC qglShaderSourceARB = NULL;
+PFNglCompileShaderARBPROC qglCompileShaderARB = NULL;
+PFNglCreateProgramObjectARBPROC qglCreateProgramObjectARB = NULL;
+PFNglAttachObjectARBPROC qglAttachObjectARB = NULL;
+PFNglLinkProgramARBPROC qglLinkProgramARB = NULL;
+PFNglUseProgramObjectARBPROC qglUseProgramObjectARB = NULL;
+PFNglUniform2fARBPROC qglUniform2fARB = NULL;
+PFNglUniform2fvARBPROC qglUniform2fvARB = NULL;
+PFNglGetUniformLocationARBPROC qglGetUniformLocationARB = NULL;
+
+PFNglBindBufferPROC qglBindBuffer = NULL;
+PFNglBindVertexArrayPROC qglBindVertexArray = NULL;
+
 void RE_SetLightStyle(int style, int color);
 
 void R_Splash()
 {
 	image_t *pImage;
-
+/*
+	const char* s = Cvar_VariableString("se_language");
+	if (stricmp(s,"english"))
+	{
+		pImage = R_FindImageFile( "menu/splash_eur", qfalse, qfalse, qfalse, GL_CLAMP);
+	}
+	else
+	{
+		pImage = R_FindImageFile( "menu/splash", qfalse, qfalse, qfalse, GL_CLAMP);
+	}
+*/
 	pImage = R_FindImageFile( "menu/splash", qfalse, qfalse, qfalse, GL_CLAMP);
 
-	extern void	RB_SetGL2D (void);
-	RB_SetGL2D();	
-	if (pImage )
-	{//invalid paths?
-		GL_Bind( pImage );
-	}
-	GL_State(GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO);
+    IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();    
+    int drawCount = pHmdRenderer != NULL ? 2 : 1;
+    
 
-	const int width = 640;
-	const int height = 480;
-	const float x1 = 320 - width / 2;
-	const float x2 = 320 + width / 2;
-	const float y1 = 240 - height / 2;
-	const float y2 = 240 + height / 2;
+    int width = 640;
+    int height = 480;
 
+    pHmdRenderer->GetRenderResolution(width, height);
 
-	qglBegin (GL_TRIANGLE_STRIP);
-		qglTexCoord2f( 0,  0 );
-		qglVertex2f(x1, y1);
-		qglTexCoord2f( 1 ,  0 );
-		qglVertex2f(x2, y1);
-		qglTexCoord2f( 0, 1 );
-		qglVertex2f(x1, y2);
-		qglTexCoord2f( 1, 1 );
-		qglVertex2f(x2, y2);
-	qglEnd();
-
+    const float x1 = (width / 2) - width / 2;
+    const float x2 = (height / 2) + width / 2;
+    const float y1 = (height / 2) - height / 2;
+    const float y2 = (height / 2) + height / 2;    
+    
+    for (int i=0; i<drawCount; i++)
+    {
+        if (pHmdRenderer)
+        {
+            pHmdRenderer->BeginRenderingForEye(i == 0);
+        }        
+     
+        extern void	RB_SetGL2D (void);
+        
+        RB_SetGL2D();	
+        if (pImage )
+        {//invalid paths?
+            GL_Bind( pImage );
+        }
+        GL_State(GLS_SRCBLEND_ONE | GLS_DSTBLEND_ZERO);        
+        
+        qglBegin (GL_TRIANGLE_STRIP);
+            qglTexCoord2f( 0,  0 );
+            qglVertex2f(x1, y1);
+            qglTexCoord2f( 1 ,  0 );
+            qglVertex2f(x2, y1);
+            qglTexCoord2f( 0, 1 );
+            qglVertex2f(x1, y2);
+            qglTexCoord2f( 1, 1 );
+            qglVertex2f(x2, y2);
+        qglEnd();
+    }
+    
 	GLimp_EndFrame();
 }
 
@@ -331,14 +394,12 @@ static void InitOpenGL( void )
 	//
 
 	if ( glConfig.vidWidth == 0 )
-	{		
+	{		       
 		GLimp_Init();
 		// print info the first time only
 		// set default state
 		GL_SetDefaultState();
-#ifndef JK2_MODE
 		R_Splash();	//get something on screen asap
-#endif
 		GfxInfo_f();
 	}
 	else

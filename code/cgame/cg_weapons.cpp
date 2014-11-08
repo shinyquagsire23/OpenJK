@@ -1029,6 +1029,7 @@ void CG_AddViewWeapon( playerState_t *ps )
 	}
 
 	// allow the gun to be completely removed
+	//HMD: TODO: Disable gun drawing for third person
 	if ( !cg_drawGun.integer || cg.zoomMode ) 
 	{
 		vec3_t		origin;

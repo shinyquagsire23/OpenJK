@@ -107,6 +107,9 @@ typedef struct {
 
 	int			fogIndex;	//what fog brush the vieworg is in
 
+     stereoFrame_t stereoFrame;
+     float       delta_yaw;
+
 } trRefdef_t;
 
 typedef struct {
@@ -546,6 +549,7 @@ typedef struct {
 	cplane_t	frustum[5];
 	vec3_t		visBounds[2];
 	float		zFar;
+     float       bodyYaw;
 } viewParms_t;
 
 
