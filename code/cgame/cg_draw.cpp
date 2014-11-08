@@ -4053,10 +4053,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		separation = 0;
 		break;
 	case STEREO_LEFT:
-		separation = -cg_stereoSeparation.value / 2;
+		separation = 0;//-cg_stereoSeparation.value / 2;
 		break;
 	case STEREO_RIGHT:
-		separation = cg_stereoSeparation.value / 2;
+		separation = 0;//cg_stereoSeparation.value / 2;
 		break;
 	default:
 		separation = 0;
@@ -4084,8 +4084,11 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	}
 
 	cg.refdef.rdflags |= RDF_DRAWSKYBOX;
-
+	cg.refdef.stereoFrame = stereoView;
 	// draw 3D view
+
+	CG_DrawCrosshairNames();
+
 	cgi_R_RenderScene( &cg.refdef );
 
 	// restore original viewpoint if running stereo
@@ -4096,5 +4099,6 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 	// draw status bar and other floating elements
 	CG_Draw2D();
 
-}
 
+
+}

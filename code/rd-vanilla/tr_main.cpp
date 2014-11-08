@@ -25,6 +25,9 @@ This file is part of Jedi Academy.
 
 #include "tr_local.h"
 
+#include "ClientHmd.h"
+#include "IHmdRenderer.h"
+
 #if !defined(G2_H_INC)
 	#include "../ghoul2/G2.h"
 #endif
@@ -422,6 +425,18 @@ void R_RotateForViewer (void)
 	// transform by the camera placement
 	VectorCopy( tr.viewParms.ori.origin, origin );
 
+    IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+    if (pHmdRenderer)
+    {             
+        // check if the renderer handles the view matrix creation
+        bool matrixCreated = pHmdRenderer->GetCustomViewMatrix(tr.ori.modelMatrix, origin[0], origin[1], origin[2], tr.viewParms.bodyYaw);
+        if (matrixCreated)
+        {            
+            tr.viewParms.world = tr.ori;
+            return;
+        }        
+    }    
+
 	viewerMatrix[0] = tr.viewParms.ori.axis[0][0];
 	viewerMatrix[4] = tr.viewParms.ori.axis[0][1];
 	viewerMatrix[8] = tr.viewParms.ori.axis[0][2];
@@ -526,6 +541,17 @@ void R_SetupProjection( void ) {
 
 	// dynamically compute far clip plane distance
 	SetFarClip();
+
+    IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+    if (pHmdRenderer)
+    {
+        // check if the renderer handles the projection matrix creation
+        bool matrixCreated = pHmdRenderer->GetCustomProjectionMatrix(tr.viewParms.projectionMatrix, r_znear->value, tr.viewParms.zFar, tr.viewParms.fovX);
+        if (matrixCreated)
+        {
+            return;
+        }
+    }
 
 	//
 	// set up projection matrix

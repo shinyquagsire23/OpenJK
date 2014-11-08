@@ -5,6 +5,13 @@
 #include "sdl_qgl.h"
 #include "../sys/sys_local.h"
 
+#include "../rd-vanilla/ClientHmd.h"
+#include "../rd-vanilla/IHmdDevice.h"
+#include "../rd-vanilla/IHmdRenderer.h"
+#include "../rd-vanilla/PlatformInfo.h"
+#include "../rd-vanilla/ClientHmd.h"
+#include "../rd-vanilla/FactoryHmdDevice.h"
+
 //static SDL_Window *window = NULL;
 
 static float displayAspect;
@@ -86,7 +93,23 @@ void GLimp_Minimize(void)
 
 void GLimp_EndFrame( void )
 {
-	SDL_GL_SwapWindow(screen);
+	bool doSwap = true;
+    
+    IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+    if (pHmdRenderer != NULL)
+    {
+        pHmdRenderer->EndFrame();
+        //doSwap = !pHmdRenderer->HandlesSwap();
+    }
+
+    if (doSwap)
+    {
+        // don't flip if drawing to front buffer
+        //if ( stricmp( r_drawBuffer->string, "GL_FRONT" ) != 0 )
+        {
+            SDL_GL_SwapWindow(screen);
+        }    
+    }
 }
 
 /*
@@ -236,7 +259,42 @@ static rserr_t GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder)
 
 	Com_Printf( "...setting mode %d:", mode );
 
-	if (mode == -2)
+	//HMD
+    // check for hmd device
+    IHmdDevice* pHmdDevice = ClientHmd::Get()->GetDevice();
+    if (pHmdDevice)
+    {
+        // found hmd device - test if device has a display
+        int deviceWidth = 0;
+        int deviceHeight = 0;
+	   int xPos = 0;
+        int yPos = 0;
+        bool displayFound = pHmdDevice->GetDeviceResolution(deviceWidth, deviceHeight);
+        
+   	if (displayFound)
+   	{
+            //fixedDeviceResolution = true;
+            //actualWidth = deviceWidth;
+            //actualHeight = deviceHeight;
+            
+            glConfig.vidWidth = deviceWidth/2;
+            glConfig.vidHeight = deviceHeight;
+            
+            //fullscreenWindow = true;
+            //fullscreen = false;
+            
+            pHmdDevice->GetDisplayPos(xPos, yPos);
+            
+            glConfig.stereoEnabled = qtrue; 
+            r_stereo->integer = 1;
+        }
+    	}
+	else if (mode == -3)
+	{
+		glConfig.vidWidth = 1920;
+          glConfig.vidHeight = 1080;
+	}
+	else if (mode == -2)
 	{
 		// use desktop video resolution
 		if( desktopMode.h > 0 )
@@ -904,6 +962,74 @@ static void GLimp_InitExtensions( void )
 		}
 	}
 
+	//HMD EXTENSIONS
+     IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+     if (pHmdRenderer != NULL)
+	{
+		qglIsRenderbuffer = (PFNglIsRenderbufferPROC) SDL_GL_GetProcAddress("glIsRenderbuffer");
+        qglBindRenderbuffer = (PFNglBindRenderbufferPROC) SDL_GL_GetProcAddress("glBindRenderbuffer");
+        qglDeleteRenderbuffers = (PFNglDeleteRenderbuffersPROC) SDL_GL_GetProcAddress("glDeleteRenderbuffers");
+        qglGenRenderbuffers = (PFNglGenRenderbuffersPROC) SDL_GL_GetProcAddress("glGenRenderbuffers");
+        qglRenderbufferStorage = (PFNglRenderbufferStoragePROC) SDL_GL_GetProcAddress("glRenderbufferStorage");
+        qglRenderbufferStorageMultisample = (PFNglRenderbufferStorageMultisamplePROC) SDL_GL_GetProcAddress("glRenderbufferStorageMultisample");
+        qglGetRenderbufferParameteriv = (PFNglGetRenderbufferParameterivPROC) SDL_GL_GetProcAddress("glGetRenderbufferParameteriv");
+        qglIsFramebuffer = (PFNglIsFramebufferPROC) SDL_GL_GetProcAddress("glIsFramebuffer");
+        qglGenFramebuffers = (PFNglGenFramebuffersPROC) SDL_GL_GetProcAddress("glGenFramebuffers");
+        qglBindFramebuffer = (PFNglBindFramebufferPROC) SDL_GL_GetProcAddress("glBindFramebuffer");
+        qglDeleteFramebuffers = (PFNglDeleteFramebuffersPROC) SDL_GL_GetProcAddress("glDeleteFramebuffers");
+        qglCheckFramebufferStatus = (PFNglCheckFramebufferStatusPROC) SDL_GL_GetProcAddress("glCheckFramebufferStatus");
+        qglFramebufferTexture1D = (PFNglFramebufferTexture1DPROC) SDL_GL_GetProcAddress("glFramebufferTexture1D");
+        qglFramebufferTexture2D = (PFNglFramebufferTexture2DPROC) SDL_GL_GetProcAddress( "glFramebufferTexture2D");
+        qglFramebufferTexture3D = (PFNglFramebufferTexture3DPROC) SDL_GL_GetProcAddress("glFramebufferTexture3D");
+        qglFramebufferTextureLayer = (PFNglFramebufferTextureLayerPROC) SDL_GL_GetProcAddress("glFramebufferTextureLayer");
+        qglFramebufferRenderbuffer = (PFNglFramebufferRenderbufferPROC) SDL_GL_GetProcAddress( "glFramebufferRenderbuffer");
+        qglGetFramebufferAttachmentParameteriv = (PFNglGetFramebufferAttachmentParameterivPROC) SDL_GL_GetProcAddress( "glGetFramebufferAttachmentParameteriv");
+        qglBlitFramebuffer = (PFNglBlitFramebufferPROC) SDL_GL_GetProcAddress("glBlitFramebuffer");
+        qglGenerateMipmap = (PFNglGenerateMipmapPROC) SDL_GL_GetProcAddress("glGenerateMipmap");
+        
+        qglCreateShaderObjectARB = (PFNglCreateShaderObjectARBPROC) SDL_GL_GetProcAddress("glCreateShaderObjectARB");
+        qglShaderSourceARB = (PFNglShaderSourceARBPROC) SDL_GL_GetProcAddress("glShaderSourceARB");
+        qglCompileShaderARB = (PFNglCompileShaderARBPROC) SDL_GL_GetProcAddress("glCompileShaderARB");
+        qglCreateProgramObjectARB = (PFNglCreateProgramObjectARBPROC) SDL_GL_GetProcAddress("glCreateProgramObjectARB");
+        qglAttachObjectARB = (PFNglAttachObjectARBPROC) SDL_GL_GetProcAddress("glAttachObjectARB");
+        qglLinkProgramARB = (PFNglLinkProgramARBPROC) SDL_GL_GetProcAddress("glLinkProgramARB");
+        qglUseProgramObjectARB = (PFNglUseProgramObjectARBPROC) SDL_GL_GetProcAddress("glUseProgramObjectARB");
+        qglUniform2fARB = (PFNglUniform2fARBPROC) SDL_GL_GetProcAddress("glUniform2fARB");
+        qglUniform2fvARB = (PFNglUniform2fvARBPROC) SDL_GL_GetProcAddress("glUniform2fvARB");
+        qglGetUniformLocationARB = (PFNglGetUniformLocationARBPROC) SDL_GL_GetProcAddress("glGetUniformLocationARB");
+        
+        qglBindBuffer = (PFNglBindBufferPROC) SDL_GL_GetProcAddress("glBindBuffer");
+        qglBindVertexArray = (PFNglBindVertexArrayPROC) SDL_GL_GetProcAddress("glBindVertexArray");    
+
+        // try to initialize hmd renderer
+        
+        PlatformInfo platformInfo;
+        platformInfo.WindowWidth = glConfig.vidWidth*2;
+        platformInfo.WindowHeight = glConfig.vidHeight;
+
+        /*SDL_SysWMinfo sysInfo;
+        SDL_VERSION(&sysInfo.version); // initialize info structure with SDL version info
+        SDL_GetWindowWMInfo(s_pSdlWindow, &sysInfo);
+#ifdef LINUX
+        if (sysInfo.subsystem == SDL_SYSWM_X11)
+        {
+            platformInfo.pDisplay = sysInfo.info.x11.display;
+            platformInfo.WindowId = sysInfo.info.x11.window;
+        }
+#endif*/
+        bool worked = pHmdRenderer->Init(glConfig.vidWidth/2, glConfig.vidHeight, platformInfo);
+        if (worked)
+        {  
+            pHmdRenderer->GetRenderResolution(glConfig.vidWidth, glConfig.vidHeight);
+        }
+        else
+        {
+            // renderer could not be initialized -> set NULL
+            pHmdRenderer = NULL;
+            ClientHmd::Get()->SetRenderer(NULL);
+        }
+	}
+
 	// Figure out which texture rectangle extension to use.
 	bool bTexRectSupported = false;
 	if ( Q_stricmpn( glConfig.vendor_string, "ATI Technologies",16 )==0
@@ -1002,6 +1128,32 @@ success:
 		glConfig.maxTextureSize = 0;
 	}
 
+    // try to create a hmd device
+    ClientHmd::Get()->SetDevice(NULL);
+    ClientHmd::Get()->SetRenderer(NULL);    
+
+    bool allowDummyDevice = false;
+#ifdef HMD_ALLOW_DUMMY_DEVICE
+    allowDummyDevice = true;
+#endif
+
+    IHmdDevice* pHmdDevice = FactoryHmdDevice::CreateHmdDevice(allowDummyDevice);
+    if (pHmdDevice)
+    {
+        Com_Printf("HMD Device found: %s\n", pHmdDevice->GetInfo().c_str());
+        ClientHmd::Get()->SetDevice(pHmdDevice);
+        
+        IHmdRenderer* pHmdRenderer = FactoryHmdDevice::CreateRendererForDevice(pHmdDevice);
+        
+        if (pHmdRenderer)
+        {
+            Com_Printf("HMD Renderer created: %s\n", pHmdRenderer->GetInfo().c_str());
+            ClientHmd::Get()->SetRenderer(pHmdRenderer);
+        }
+    }
+    else
+        Com_Printf("No HMD Device found.");
+
 	// initialize extensions
 	GLimp_InitExtensions( );
 
@@ -1019,6 +1171,26 @@ GLimp_Shutdown
 void 		GLimp_Shutdown( void )
 {
 	ri.IN_Shutdown();
+
+    IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+    if (pHmdRenderer != NULL)
+    {
+        ClientHmd::Get()->SetRenderer(NULL);
+        
+        pHmdRenderer->Shutdown();
+        delete pHmdRenderer;
+        pHmdRenderer = NULL;
+    }
+    
+    IHmdDevice* pHmdDevice = ClientHmd::Get()->GetDevice();
+    if (pHmdDevice != NULL)
+    {
+        ClientHmd::Get()->SetDevice(NULL);
+        
+        pHmdDevice->Shutdown();
+        delete pHmdDevice;
+        pHmdDevice = NULL;
+    }
 
 	SDL_QuitSubSystem( SDL_INIT_VIDEO );
 
