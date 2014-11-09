@@ -19,6 +19,8 @@
 #include <OVR_CAPI_GL.h>
 #include <OVR_CAPI_GL.h>
 
+#include "tr_local.h"
+
 
 HmdRendererOculusSdk::HmdRendererOculusSdk(HmdDeviceOculusSdk* pHmdDeviceOculusSdk)
     :mIsInitialized(false)
@@ -99,7 +101,7 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     eyeTextures[1].OGL.Header.RenderViewport = eyeRenderViewport[1];
     eyeTextures[1].OGL.TexId = mFboInfos[1].ColorBuffer;
 
-    //mOculusProgram = RenderTool::CreateShaderProgram(GetVertexShader(), GetPixelShader());
+    mOculusProgram = RenderTool::CreateShaderProgram(GetVertexShader(), GetPixelShader());
 
     mInterpupillaryDistance = OVR_DEFAULT_IPD;
 
@@ -111,10 +113,10 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     //glcfg.OGL.Disp = glXGetCurrentDisplay();
     //glcfg.OGL.Win = glXGetCurrentDrawable();
 
-    hmd_caps = ovrHmdCap_LowPersistence;// | ovrHmdCap_DynamicPrediction;
+    hmd_caps = 0;//ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction;
     ovrHmd_SetEnabledCaps(mpHmd, hmd_caps);
 
-    distort_caps = ovrDistortionCap_Chromatic | ovrDistortionCap_TimeWarp;//  | ovrDistortionCap_Overdrive  | ovrDistortionCap_Vignette;
+    distort_caps = ovrDistortionCap_Chromatic;// | ovrDistortionCap_TimeWarp  | ovrDistortionCap_Overdrive;  | ovrDistortionCap_Vignette;
     if(RENDER_WITH_DISTORT)
     {
         if(!ovrHmd_ConfigureRendering(mpHmd, &glcfg.Config, distort_caps, mpHmd->DefaultEyeFov, eye_rdesc)) 
@@ -229,6 +231,8 @@ void HmdRendererOculusSdk::EndFrame()
        qglBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
        qglBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+	ClientHmd::Get()->UpdateGame();
 }
 
 
@@ -281,8 +285,9 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
     ovrPosef pose = mpTs.HeadPose.ThePose;
     quat[0] = pose.Orientation.x;
     quat[1] = pose.Orientation.y;
-    quat[2] = pose.Orientation.z;
+    quat[2] = 0;//pose.Orientation.z;
     quat[3] = pose.Orientation.w;
+
     //ohmd_device_getf(mpHmd, OHMD_ROTATION_QUAT, &quat[0]);
     glm::quat hmdRotation = glm::inverse(glm::quat(quat[3], quat[0], quat[1], quat[2]));
 
@@ -317,16 +322,23 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 bool HmdRendererOculusSdk::Get2DViewport(int& rX, int& rY, int& rW, int& rH)
 {
     // shrink the gui for the HMD display
-    float scale = 0.3f;
+    bool in_camera_out = ri.Cvar_Get( "cg_in_camera", "0", 0 )->integer;
+    float scale = in_camera_out ? 1.0f : 0.3f;
     float aspect = 1.0f;
 
     rW = mRenderWidth * scale;
     rH = mRenderWidth* scale * aspect;
 
     rX = (mRenderWidth - rW)/2.0f;
-    int xOff = mRenderWidth/12.5f;
+    int xOff = mRenderWidth/3.5f;
+
+    //meter to game unit (game unit = feet*2)
+    float meterToGame = 3.28084f*2.0f;
+    // apply ipd
+    float halfIPD = mInterpupillaryDistance * 0.5f * meterToGame * (mCurrentFbo == 0 ? 1.0f : -1.0f);
+
     xOff *= mCurrentFbo == 0 ? 1 : -1;
-    rX += xOff;
+    rX += halfIPD;
 
     rY = (mRenderHeight - rH)/2;
 

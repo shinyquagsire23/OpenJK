@@ -220,7 +220,8 @@ if(BuildSPEngine OR BuildJK2SPEngine)
 		"${SPDir}/rd-vanilla/IHmdDevice.h"
 		"${SPDir}/rd-vanilla/GameHmd.cpp"
 		"${SPDir}/rd-vanilla/GameHmd.h"
-
+		"${SPDir}/rd-vanilla/ClientHmd.cpp"
+		"${SPDir}/rd-vanilla/ClientHmd.h"
 		)
 	source_group("hmd" FILES ${SPEngineHMDFiles})
 	set(SPRDVanillaFiles ${SPRDVanillaFiles} ${SPEngineHMDFiles})

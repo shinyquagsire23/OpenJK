@@ -23,12 +23,19 @@ This file is part of Jedi Academy.
 #include "../server/exe_headers.h"
 
 
+#include "../rd-vanilla/ClientHmd.h"
+#include "../rd-vanilla/IHmdDevice.h"
+#include "../rd-vanilla/HmdDeviceOculusSdk.h"
+
 #include "client.h"
 #include "client_ui.h"
 
 #ifndef _WIN32
 #include <cmath>
 #endif
+
+#include <memory>
+#include <algorithm>
 
 unsigned	frame_msec;
 int			old_com_frameTime;
@@ -543,10 +550,10 @@ void CL_MouseMove( usercmd_t *cmd ) {
 	// allow mouse smoothing
 	if ( m_filter->integer ) {
 		mx = ( cl.mouseDx[0] + cl.mouseDx[1] ) * 0.5;
-		my = ( cl.mouseDy[0] + cl.mouseDy[1] ) * 0.5;
+		my = 0;//( cl.mouseDy[0] + cl.mouseDy[1] ) * 0.5;
 	} else {
 		mx = cl.mouseDx[cl.mouseIndex];
-		my = cl.mouseDy[cl.mouseIndex];
+		my = 0;//cl.mouseDy[cl.mouseIndex];
 	}
 
 	cl.mouseIndex ^= 1;
@@ -708,6 +715,9 @@ usercmd_t CL_CreateCmd( void ) {
 		cl.viewangles[PITCH] = oldAngles[PITCH] - 90;
 	} 
 
+	float yawDiff = cl.viewangles[YAW] - oldAngles[YAW];
+	UpdateInputView(yawDiff, cl.viewangles[PITCH], cl.viewangles[YAW], cl.viewangles[ROLL]);
+
 	if ( cl_overrideAngles )
 	{
 		VectorCopy( cl_overriddenAngles, cl.viewangles );
@@ -727,6 +737,108 @@ usercmd_t CL_CreateCmd( void ) {
 	}
 
 	return cmd;
+}
+
+float mLastViewangleYaw;
+float mViewangleDiff;
+ovrHmd mpHmd;
+void UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float& rRoll)
+{
+    if (mpHmd == NULL)
+    {
+    		ovr_Initialize();
+ 
+    		mpHmd = ovrHmd_Create(0);
+ 
+    		if (mpHmd == NULL)
+    		{
+            	Com_Printf("No hmd device found. Attempting to make debug device.\n");
+           	 mpHmd = ovrHmd_CreateDebug(ovrHmd_DK2);
+    		}
+    }
+
+    mViewangleDiff += yawDiff;
+    mViewangleDiff = fmod(mViewangleDiff, 360.0f);
+
+    mLastViewangleYaw = rYaw;
+
+    float pitch = 0;
+    float yaw = 0;
+    float roll = 0;
+
+	float quat[4];
+    ovrPosef pose = ovrHmd_GetTrackingState(mpHmd, ovr_GetTimeInSeconds()).HeadPose.ThePose;
+    quat[0] = pose.Orientation.x;
+    quat[1] = pose.Orientation.y;
+    quat[2] = pose.Orientation.z;
+    quat[3] = pose.Orientation.w;
+    ConvertQuatToEuler(&quat[0], yaw, pitch, roll);
+
+    pitch = RAD2DEG(-pitch);
+    yaw = RAD2DEG(yaw);
+    roll = RAD2DEG(-roll);
+
+    rPitch = pitch;
+
+    rPitch = std::max(rPitch, -80.0f);
+    rPitch = std::min(rPitch, 80.0f);
+
+    rYaw = ((yaw * 4) + mViewangleDiff);
+    mLastViewangleYaw = rYaw;
+}
+
+void ConvertQuatToEuler(const float* quat, float& rYaw, float& rPitch, float& rRoll)
+{
+    //https://svn.code.sf.net/p/irrlicht/code/trunk/include/quaternion.h
+    // modified to get yaw before pitch
+
+    float W = quat[3];
+    float X = quat[1];
+    float Y = quat[0];
+    float Z = quat[2];
+
+    float sqw = W*W;
+    float sqx = X*X;
+    float sqy = Y*Y;
+    float sqz = Z*Z;
+
+    float test = 2.0f * (Y*W - X*Z);
+
+    if (test > (1.0f - 0.000001f))
+    {
+        // heading = rotation about z-axis
+        rRoll = (-2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        rYaw = 0;
+        // attitude = rotation about y-axis
+        rPitch = M_PI/2.0f;
+    }
+    else if (test < (-1.0f + 0.000001f))
+    {
+        // heading = rotation about z-axis
+        rRoll = (2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        rYaw = 0;
+        // attitude = rotation about y-axis
+        rPitch = M_PI/-2.0f;
+    }
+    else
+    {
+        // heading = rotation about z-axis
+        rRoll = atan2(2.0f * (X*Y +Z*W),(sqx - sqy - sqz + sqw));
+        // bank = rotation about x-axis
+        rYaw = atan2(2.0f * (Y*Z +X*W),(-sqx - sqy + sqz + sqw));
+        // attitude = rotation about y-axis
+        test = max(test, -1.0f);
+        test = min(test, 1.0f);
+        rPitch = asin(test);
+    }
+}
+
+bool GetOrientation(float& rPitch, float& rYaw, float& rRoll)
+{
+
+    return true;
 }
 
 
