@@ -232,7 +232,7 @@ void HmdRendererOculusSdk::EndFrame()
        qglBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
-	ClientHmd::Get()->UpdateGame();
+	ClientHmd::Get()->UpdateGame(bodyYaw);
 }
 
 
@@ -273,22 +273,23 @@ bool HmdRendererOculusSdk::GetCustomProjectionMatrix(float* rProjectionMatrix, f
     return true;
 }
 
-bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, float yPos, float zPos, float bodyYaw)
+bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, float yPos, float zPos, float bodyYaw_)
 {
     if (!mIsInitialized)
     {
         return false;
     }
 
+	//Com_Printf("[HMD] Current yaw: %f\n", bodyYaw);
+
     // get current hmd rotation
     float quat[4];
+    bodyYaw = bodyYaw_;
     ovrPosef pose = mpTs.HeadPose.ThePose;
     quat[0] = pose.Orientation.x;
     quat[1] = pose.Orientation.y;
-    quat[2] = 0;//pose.Orientation.z;
+    quat[2] = pose.Orientation.z;
     quat[3] = pose.Orientation.w;
-
-    //ohmd_device_getf(mpHmd, OHMD_ROTATION_QUAT, &quat[0]);
     glm::quat hmdRotation = glm::inverse(glm::quat(quat[3], quat[0], quat[1], quat[2]));
 
     // change hmd orientation to game coordinate system

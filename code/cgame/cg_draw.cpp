@@ -1,16 +1,13 @@
 /*
 This file is part of Jedi Academy.
-
     Jedi Academy is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 2 of the License, or
     (at your option) any later version.
-
     Jedi Academy is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
-
     You should have received a copy of the GNU General Public License
     along with Jedi Academy.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -90,10 +87,8 @@ static void CG_DrawMessageLit(centity_t *cent,int x,int y)
 			if (!cg.messageLitActive)
 			{
 				/*
-
 				kef 4/16/03 --	as fun as this was, its time has passed. I will, however, hijack this cvar at James'
 								recommendation and use it for another nefarious purpose
-
 				if (cg_neverHearThatDumbBeepingSoundAgain.integer == 0)
 				{
 					cgi_S_StartSound( NULL, 0, CHAN_AUTO, cgs.media.messageLitSound );
@@ -119,7 +114,6 @@ static void CG_DrawMessageLit(centity_t *cent,int x,int y)
 /*
 ================
 CG_DrawForcePower
-
 Draw the force power graphics (tics) and the force power numeric amount. Any tics that are partial will
 be alphaed out.
 ================
@@ -249,7 +243,6 @@ static void CG_DrawForcePower(const centity_t *cent,const int xPos,const int yPo
 /*
 ================
 CG_DrawSaberStyle
-
 If the weapon is a light saber (which needs no ammo) then draw a graphic showing
 the saber style (fast, medium, strong)
 ================
@@ -307,7 +300,6 @@ static void CG_DrawSaberStyle(const centity_t	*cent,const int xPos,const int yPo
 /*
 ================
 CG_DrawAmmo
-
 Draw the ammo graphics (tics) and the ammo numeric amount. Any tics that are partial will
 be alphaed out. 
 ================
@@ -486,7 +478,6 @@ static void CG_DrawHealth(const int x,const int y,const int w,const int h)
 /*
 ================
 CG_DrawArmor
-
 Draw the armor graphics (tics) and the armor numeric amount. Any tics that are partial will
 be alphaed out.
 ================
@@ -1523,10 +1514,8 @@ static qboolean CG_DrawCustomHealthHud( centity_t *cent )
 		// DRAW emplaced HUD
 /*		color[0] = color[1] = color[2] = 0.0f;
 		color[3] = 0.3f;
-
 		cgi_R_SetColor( color );
 		CG_DrawPic( 14, 480 - 50, 94, 32, cgs.media.whiteShader );
-
 		// NOTE: this looks ugly
 		if ( cent->gent && cent->gent->owner )
 		{
@@ -1541,13 +1530,10 @@ static qboolean CG_DrawCustomHealthHud( centity_t *cent )
 				health = cent->gent->owner->health / (float)cent->gent->owner->max_health;
 			}
 		}
-
 		color[0] = 1.0f;
 		color[3] = 0.5f;
-
 		cgi_R_SetColor( color );
 		CG_DrawPic( 18, 480 - 41, 87 * health, 19, cgs.media.whiteShader );
-
 		cgi_R_SetColor( colorTable[CT_WHITE] );
 		CG_DrawPic( 2, 480 - 64, 128, 64, cgs.media.emplacedHealthBarShader);
 */
@@ -1561,10 +1547,8 @@ static qboolean CG_DrawCustomHealthHud( centity_t *cent )
 		// we are an ATST...
 		color[0] = color[1] = color[2] = 0.0f;
 		color[3] = 0.3f;
-
 		cgi_R_SetColor( color );
 		CG_DrawPic( 14, 480 - 50, 94, 32, cgs.media.whiteShader );
-
 		// we just calc the display value from the sum of health and armor
 		if ( g_entities[cg.snap->ps.viewEntity].activator ) // ensure we can look back to the atst_drivable to get the max health
 		{
@@ -1576,14 +1560,11 @@ static qboolean CG_DrawCustomHealthHud( centity_t *cent )
 			health = ( g_entities[cg.snap->ps.viewEntity].health + g_entities[cg.snap->ps.viewEntity].client->ps.stats[STAT_ARMOR]) / 
 				(float)(g_entities[cg.snap->ps.viewEntity].max_health + 800 ); // hacked max armor since we don't have an activator...should never happen
 		}
-
 		color[1] = 0.25f; // blue-green
 		color[2] = 1.0f;
 		color[3] = 0.5f;
-
 		cgi_R_SetColor( color );
 		CG_DrawPic( 18, 480 - 41, 87 * health, 19, cgs.media.whiteShader );
-
 		cgi_R_SetColor( colorTable[CT_WHITE] );
 		CG_DrawPic( 2, 480 - 64, 128, 64, cgs.media.emplacedHealthBarShader);
 */
@@ -1658,6 +1639,7 @@ static void CG_DrawHUD( centity_t *cent )
 	// Draw the lower left section of the HUD
 	if (cgi_UI_GetMenuInfo("lefthud",&sectionXPos,&sectionYPos,&sectionWidth,&sectionHeight))
 	{
+
 		// Draw all the HUD elements --eez
 		cgi_UI_Menu_Paint( cgi_UI_GetMenuByName( "lefthud" ), qtrue );
 
@@ -1698,9 +1680,6 @@ static void CG_DrawHUD( centity_t *cent )
 	// Draw the lower right section of the HUD
 	if (cgi_UI_GetMenuInfo("righthud",&sectionXPos,&sectionYPos,&sectionWidth,&sectionHeight))
 	{
-		// Draw all the HUD elements --eez
-		cgi_UI_Menu_Paint( cgi_UI_GetMenuByName( "righthud" ), qtrue );
-
 		// Draw armor & health values
 		if ( cg_drawStatus.integer == 2 ) 
 		{
@@ -2157,12 +2136,14 @@ CG_DrawStats
 static void CG_DrawStats( void ) 
 {
 	centity_t		*cent;
+	//playerState_t	*ps;
 
 	if ( cg_drawStatus.integer == 0 ) {
 		return;
 	}
 
 	cent = &cg_entities[cg.snap->ps.clientNum];
+	//ps = &cg.snap->ps;
 
 	if ((cg.snap->ps.viewEntity>0&&cg.snap->ps.viewEntity<ENTITYNUM_WORLD))
 	{
@@ -2250,6 +2231,7 @@ void CG_DrawCredits(void)
 void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float chH)
 {
 	vec4_t aColor;
+	vec4_t bColor;
 	vec4_t cColor;
 	float x = chX-(chW/2);
 	float y = chY-chH;
@@ -2271,6 +2253,12 @@ void CG_DrawHealthBar(centity_t *cent, float chX, float chY, float chW, float ch
 	aColor[1] = 0.0f;
 	aColor[2] = 0.0f;
 	aColor[3] = 0.4f;
+
+	//color of the border
+	bColor[0] = 0.0f;
+	bColor[1] = 0.0f;
+	bColor[2] = 0.0f;
+	bColor[3] = 0.3f;
 
 	//color of greyed out "missing health"
 	cColor[0] = 0.5f;
@@ -2350,7 +2338,42 @@ CROSSHAIR
 CG_DrawCrosshair
 =================
 */
-static void CG_DrawCrosshair( vec3_t worldPoint ) 
+
+static void CG_PlaceCrosshairInWorld(vec3_t worldPoint, float crosshairEntDist, float size, qhandle_t hShader, vec4_t ecolor)
+{
+    // [LAva] got the basics from ioquake / ioq3
+    
+    //char rendererinfos[128];
+    //trap_Cvar_VariableStringBuffer("r_zProj", rendererinfos, sizeof(rendererinfos));
+    //float zProj = atof(rendererinfos);
+
+    float xmax = tan(cg.refdef.fov_x * M_PI / 360.0f);
+    //printf("xmax=%.2f fov_x=%.2f dist=%.2f\n", xmax, cg.refdef.fov_x, crosshairEntDist);
+    
+    refEntity_t ent;
+
+    memset(&ent, 0, sizeof(ent));
+    ent.reType = RT_SPRITE;
+    ent.renderfx = RF_DEPTHHACK;
+
+    VectorCopy(worldPoint, ent.origin);
+
+    // scale the crosshair so it appears the same size for all distances
+    ent.radius = size / 640 * xmax * crosshairEntDist;
+    ent.customShader = hShader;
+    ent.shaderRGBA[0] = ecolor[0]*255;
+    ent.shaderRGBA[1] = ecolor[1]*255;
+    ent.shaderRGBA[2] = ecolor[2]*255;
+    ent.shaderRGBA[3] = ecolor[3]*255;
+
+    cgi_R_AddRefEntityToScene(&ent);    
+}
+
+
+#ifdef _XBOX
+short cg_crossHairStatus = 0;
+#endif
+static void CG_DrawCrosshair( vec3_t worldPoint, float crosshairEntDist)
 {
 	float		w, h;
 	qhandle_t	hShader;
@@ -2358,6 +2381,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 	vec4_t		ecolor;
 	float		f;
 	float		x, y;
+
 
 	if ( !cg_drawCrosshair.integer ) 
 	{
@@ -2370,6 +2394,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		return;
 	}
 
+#ifdef _XBOX
+	cg_crossHairStatus = 0;
+#endif
 	//set color based on what kind of ent is under crosshair
 	if ( g_crosshairEntNum >= ENTITYNUM_WORLD )
 	{
@@ -2397,6 +2424,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			}
 			else if ( g_entities[0].client && g_entities[0].client->playerTeam == TEAM_FREE )
 			{//evil player: everyone is red
+#ifdef _XBOX
+				cg_crossHairStatus = 1;
+#endif
 				//Enemies are red
 				ecolor[0] = 1.0f;//R
 				ecolor[1] = 0.1f;//G
@@ -2418,6 +2448,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			}
 			else
 			{
+#ifdef _XBOX
+				cg_crossHairStatus = 1;
+#endif
 				//Enemies are red
 				ecolor[0] = 1.0f;//R
 				ecolor[1] = 0.1f;//G
@@ -2437,6 +2470,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			else
 			{
 				// hostile ones are red
+#ifdef _XBOX
+				cg_crossHairStatus = 1;
+#endif
 				ecolor[0] = 1.0;//R
 				ecolor[1] = 0.0;//G
 				ecolor[2] = 0.0;//B
@@ -2445,6 +2481,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		else if ( crossEnt->s.weapon == WP_TRIP_MINE )
 		{
 			// tripmines are red
+#ifdef _XBOX
+			cg_crossHairStatus = 1;
+#endif
 			ecolor[0] = 1.0;//R
 			ecolor[1] = 0.0;//G
 			ecolor[2] = 0.0;//B
@@ -2545,39 +2584,43 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		h *= ( 1 + f );
 	}
 
-	if ( worldPoint && VectorLength( worldPoint ) )
-	{
-		if ( !CG_WorldCoordToScreenCoordFloat( worldPoint, &x, &y ) )
-		{//off screen, don't draw it
-			return;
-		}
-		x -= 320;//????
-		y -= 240;//????
-	}
-	else
-	{
-		x = cg_crosshairX.integer;
-		y = cg_crosshairY.integer;
-	}
+//	if ( worldPoint && VectorLength( worldPoint ) )
+//	{
+//		if ( !CG_WorldCoordToScreenCoordFloat( worldPoint, &x, &y ) )
+//		{//off screen, don't draw it
+//			return;
+//		}
+//		x -= 320;//????
+//		y -= 240;//????
+//	}
+//	else
+//	{
+//		x = cg_crosshairX.integer;
+//		y = cg_crosshairY.integer;
+//	}
 
 	if ( cg.snap->ps.viewEntity > 0 && cg.snap->ps.viewEntity < ENTITYNUM_WORLD )
 	{
 		if ( !Q_stricmp( "misc_panel_turret", g_entities[cg.snap->ps.viewEntity].classname ))
 		{
 			// draws a custom crosshair that is twice as large as normal
-			cgi_R_DrawStretchPic( x + cg.refdef.x + 320 - w, 
-				y + cg.refdef.y + 240 - h, 
-				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );	
+            CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w*2, cgs.media.turretCrossHairShader, ecolor);
+//			cgi_R_DrawStretchPic( x + cg.refdef.x + 320 - w, 
+//				y + cg.refdef.y + 240 - h, 
+//				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );	
 
 		}
 	}
 	else 
 	{
+
+
 		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 
-		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w), 
-			y + cg.refdef.y + 0.5 * (480 - h), 
-			w, h, 0, 0, 1, 1, hShader );	
+        CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w, hShader, ecolor);
+		//cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w),
+		//	y + cg.refdef.y + 0.5 * (480 - h),
+		//	w, h, 0, 0, 1, 1, hShader );
 	}
 
 	if ( cg.forceCrosshairStartTime && cg_crosshairForceHint.integer ) // drawing extra bits
@@ -2590,10 +2633,11 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		w *= 2.0f;
 		h *= 2.0f;
 
-		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5f * ( 640 - w ), y + cg.refdef.y + 0.5f * ( 480 - h ), 
-								w, h, 
-								0, 0, 1, 1, 
-								cgs.media.forceCoronaShader ); 
+        CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w, cgs.media.forceCoronaShader, ecolor);        
+//		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5f * ( 640 - w ), y + cg.refdef.y + 0.5f * ( 480 - h ), 
+//								w, h, 
+//								0, 0, 1, 1, 
+//								cgs.media.forceCoronaShader ); 
 	}
 }
 
@@ -2839,7 +2883,7 @@ static void CG_ScanForCrosshairEntity( qboolean scanAll )
 	}
 	if ( !cg_forceCrosshair )
 	{
-		if ( cg_dynamicCrosshair.integer )
+		if ( 1 ) //(cg_dynamicCrosshair.integer )
 		{//100% accurate
 			vec3_t d_f, d_rt, d_up;
 			// If you're riding a vehicle and not being drawn.
@@ -2883,7 +2927,7 @@ static void CG_ScanForCrosshairEntity( qboolean scanAll )
 		{//old way
 			VectorCopy( cg.refdef.vieworg, start );
 			//FIXME: increase this?  Increase when zoom in?
-			VectorMA( start, 131072, cg.refdef.viewaxis[0], end );//was 8192
+			VectorMA( start, 4096, cg.refdef.viewaxis[0], end );//was 8192
 		}
 		//YES!  This is very very bad... but it works!  James made me do it.  Really, he did.  Blame James.
 		gi.trace( &trace, start, vec3_origin, vec3_origin, end, 
@@ -2913,12 +2957,17 @@ static void CG_ScanForCrosshairEntity( qboolean scanAll )
 		return;
 	}
 */
-	//draw crosshair at endpoint
-	CG_DrawCrosshair( trace.endpos );
+
 
 	g_crosshairEntNum = trace.entityNum;
 	g_crosshairEntDist = 4096*trace.fraction;
 
+    //CROSSHAIR is now always drawn from this trace so it's 100% accurate
+	if ( 1 )	//(cg_dynamicCrosshair.integer )
+	{//draw crosshair at endpoint
+		CG_DrawCrosshair( trace.endpos, g_crosshairEntDist);
+	}    
+    
 	if ( !traceEnt )
 	{
 		//not looking at anything
@@ -2985,7 +3034,7 @@ static void CG_DrawCrosshairNames( void )
 	qboolean	scanAll = qfalse;
 	centity_t	*player = &cg_entities[0];
 
-	if ( cg_dynamicCrosshair.integer )
+	if ( 1 ) //cg_dynamicCrosshair.integer )
 	{
 		// still need to scan for dynamic crosshair
 		CG_ScanForCrosshairEntity( scanAll );
@@ -3171,12 +3220,24 @@ static void CG_RunRocketLocking( void )
 
 			if ( g_rocketLockEntNum > 0 && g_rocketLockEntNum < ENTITYNUM_WORLD && g_rocketLockTime > 0 )
 			{
+#ifdef _XBOX
+				FFFX_START( fffx_StartConst );
+#endif
 				CG_DrawRocketLocking( g_rocketLockEntNum, g_rocketLockTime );
 			}
+#ifdef _XBOX
+			else
+			{
+				FFFX_START( fffx_StopConst );
+			}
+#endif
 		}
 		else
 		{
 			// disengage any residual locking
+#ifdef _XBOX
+			FFFX_START( fffx_StopConst );
+#endif
 			g_rocketLockEntNum = ENTITYNUM_WORLD;
 			g_rocketLockTime = 0;
 		}
@@ -3225,7 +3286,11 @@ static float CG_DrawFPS( float y ) {
 	static int	previous, lastupdate;
 	int		t, i, fps, total;
 	unsigned short frameTime;
+#ifdef _XBOX
+	const int		xOffset = 30;
+#else
 	const int		xOffset = 0;
+#endif
 
 	// don't use serverTime, because that will be drifting to
 	// correct for internet lag changes, timescales, timedemos, etc
@@ -3815,7 +3880,7 @@ static void CG_Draw2D( void )
 		//}
 
 
-		CG_DrawCrosshairNames();
+		//CG_DrawCrosshairNames();
 
 		CG_RunRocketLocking();
 
@@ -3829,7 +3894,11 @@ static void CG_Draw2D( void )
 	}
 	CG_SaberClashFlare();
 
+#ifdef _XBOX
+	float y = 32;
+#else
 	float y = 0;
+#endif
 	if (cg_drawSnapshot.integer) {
 		y=CG_DrawSnapshot(y);
 	} 
@@ -3887,7 +3956,7 @@ static void CG_Draw2D( void )
 			
 			int x_pos = 0;
 			y_pos = 20;
-			w = cgi_R_Font_StrLenPixels(text,cgs.media.qhFontMedium, 1.0f);
+			w = cgi_R_Font_StrLenPixels(text,cgs.media.qhFontSmall, 1.0f);
 			x_pos = (SCREEN_WIDTH/2)-(w/2);
 			cgi_R_Font_DrawString(x_pos, y_pos, text,  colorTable[CT_LTRED1], cgs.media.qhFontMedium, -1, 1.0f);
 		}
@@ -3899,7 +3968,7 @@ static void CG_Draw2D( void )
 		y_pos = 5;
 		gi.Cvar_VariableStringBuffer( "cg_WeaponPickupText", text, sizeof(text) );
 
-		w = cgi_R_Font_StrLenPixels(text,cgs.media.qhFontMedium, 0.8f);
+		w = cgi_R_Font_StrLenPixels(text,cgs.media.qhFontSmall, 0.8f);
 		x_pos = (SCREEN_WIDTH/2)-(w/2);
 
 		cgi_R_Font_DrawString(x_pos, y_pos, text,  colorTable[CT_WHITE], cgs.media.qhFontMedium, -1, 0.8f);
@@ -4102,3 +4171,4 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 
 
 }
+

@@ -1952,6 +1952,8 @@ void G_InitPlayerFromCvars( gentity_t *ent )
 	G_AddWeaponModels( ent );
 	NPC_SetAnim( ent, SETANIM_LEGS, ent->client->ps.legsAnim, SETANIM_FLAG_NORMAL|SETANIM_FLAG_RESTART );
 	NPC_SetAnim( ent, SETANIM_TORSO, ent->client->ps.torsoAnim, SETANIM_FLAG_NORMAL|SETANIM_FLAG_RESTART );
+	//HMD: Attempt to remove head
+	//gi.G2API_SetSurfaceOnOff( &ent->ghoul2[ent->playerModel], "head", G2SURFACEFLAG_NODESCENDANTS);
 	if ( !ent->s.number )
 	{//the actual player, not an NPC pretending to be a player
 		ClientUserinfoChanged( ent->s.number );
@@ -2028,6 +2030,7 @@ void G_ChangePlayerModel( gentity_t *ent, const char *newModel )
 			G_ChangePlayerModel( ent, "stormtrooper" );	//need a better fallback?
 		}
 	}
+	
 }
 
 void G_ReloadSaberData( gentity_t *ent )

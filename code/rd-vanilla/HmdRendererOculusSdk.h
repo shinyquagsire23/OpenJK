@@ -36,7 +36,7 @@ public:
     virtual void EndFrame();
 
     virtual bool GetCustomProjectionMatrix(float* rProjectionMatrix, float zNear, float zFar, float fov);
-    virtual bool GetCustomViewMatrix(float* rViewMatrix, float xPos, float yPos, float zPos, float bodyYaw);
+    virtual bool GetCustomViewMatrix(float* rViewMatrix, float xPos, float yPos, float zPos, float bodyYaw_);
 
     virtual bool Get2DViewport(int& rX, int& rY, int& rW, int& rH);
 
@@ -66,6 +66,7 @@ private:
     unsigned int hmd_caps;
     unsigned int distort_caps;
     const bool RENDER_WITH_DISTORT = 1;
+    float bodyYaw = 0;
 
     int mCurrentFbo;
 

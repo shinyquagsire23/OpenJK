@@ -1301,6 +1301,16 @@ void CGCam_Update( void )
 	//Update shaking if there's any
 	//CGCam_UpdateSmooth( cg.refdef.vieworg, cg.refdefViewAngles );
 	CGCam_UpdateShake( cg.refdef.vieworg, cg.refdefViewAngles );
+
+	cg.refdefViewAngles[0] = cg.predicted_player_state.viewangles[0];
+	cg.refdefViewAngles[1] += cg.predicted_player_state.viewangles[1];
+	cg.refdefViewAngles[2] = cg.predicted_player_state.viewangles[2];
+
+	
+    //VectorCopy(cg.refdefViewAngles, cg.refdefViewAnglesWeapon);
+
+    cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
+
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 }
 

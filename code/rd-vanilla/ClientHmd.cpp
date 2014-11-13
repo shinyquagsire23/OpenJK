@@ -1,4 +1,5 @@
 #include "ClientHmd.h"
+#include "GameHmd.h"
 #include "IHmdDevice.h"
 
 #include "../qcommon/q_shared.h"
@@ -82,7 +83,7 @@ void ClientHmd::UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float
     mLastViewangleYaw = rYaw;
 }
 
-void ClientHmd::UpdateGame()
+void ClientHmd::UpdateGame(float& yaw)
 {
     if (mpDevice == NULL)
     {
@@ -90,7 +91,7 @@ void ClientHmd::UpdateGame()
     }
 
     float pitch = 0;
-    float yaw = 0;
+    yaw = 0;
     float roll = 0;
 
     bool worked = GetOrientation(pitch, yaw, roll);
@@ -104,7 +105,7 @@ void ClientHmd::UpdateGame()
 
     yaw += mViewangleDiff;
 
-    //VM_Call(CG_HMD_UPDATE, &pitch, &yaw, &roll);
+     //GameHmd::Get()->UpdateHmd(&pitch, &yaw, &roll);
 }
 
 

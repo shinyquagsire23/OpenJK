@@ -526,7 +526,7 @@ int CG_GetCameraPos( vec3_t camerapos ) {
 		VectorCopy( cg.refdef.vieworg, camerapos );
 		return 1;
 	}
-	else if (cg.snap && (cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE) )//implied: !cg.renderingThirdPerson 
+	else if (cg.snap && (cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE||1) )//implied: !cg.renderingThirdPerson 
 	{//first person saber hack
 		VectorCopy( cg.refdef.vieworg, camerapos );
 		return 1;

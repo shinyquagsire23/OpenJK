@@ -430,6 +430,7 @@ void R_RotateForViewer (void)
     {             
         // check if the renderer handles the view matrix creation
         bool matrixCreated = pHmdRenderer->GetCustomViewMatrix(tr.ori.modelMatrix, origin[0], origin[1], origin[2], tr.viewParms.bodyYaw);
+        //ri.Printf(PRINT_ALL, "[RND] Current yaw: %f\n", tr.viewParms.bodyYaw); 
         if (matrixCreated)
         {            
             tr.viewParms.world = tr.ori;
@@ -1367,8 +1368,8 @@ Ghoul2 Insert Start
 					{
 						if (!(ent->e.renderfx & RF_SHADOW_ONLY))
 						{
-						break;
-					}
+							//break;
+						}
 					}
 
   					if (ent->e.ghoul2 && G2API_HaveWeGhoul2Models(*((CGhoul2Info_v *)ent->e.ghoul2)))

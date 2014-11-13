@@ -550,10 +550,10 @@ void CL_MouseMove( usercmd_t *cmd ) {
 	// allow mouse smoothing
 	if ( m_filter->integer ) {
 		mx = ( cl.mouseDx[0] + cl.mouseDx[1] ) * 0.5;
-		my = 0;//( cl.mouseDy[0] + cl.mouseDy[1] ) * 0.5;
+		my = ( cl.mouseDy[0] + cl.mouseDy[1] ) * 0.5;
 	} else {
 		mx = cl.mouseDx[cl.mouseIndex];
-		my = 0;//cl.mouseDy[cl.mouseIndex];
+		my = cl.mouseDy[cl.mouseIndex];
 	}
 
 	cl.mouseIndex ^= 1;
@@ -716,7 +716,7 @@ usercmd_t CL_CreateCmd( void ) {
 	} 
 
 	float yawDiff = cl.viewangles[YAW] - oldAngles[YAW];
-	UpdateInputView(yawDiff, cl.viewangles[PITCH], cl.viewangles[YAW], cl.viewangles[ROLL]);
+	//UpdateInputView(yawDiff, cl.viewangles[PITCH], cl.viewangles[YAW], cl.viewangles[ROLL]);
 
 	if ( cl_overrideAngles )
 	{
@@ -783,7 +783,7 @@ void UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float& rRoll)
     rPitch = std::max(rPitch, -80.0f);
     rPitch = std::min(rPitch, 80.0f);
 
-    rYaw = ((yaw * 4) + mViewangleDiff);
+    rYaw = ((yaw) + mViewangleDiff);
     mLastViewangleYaw = rYaw;
 }
 

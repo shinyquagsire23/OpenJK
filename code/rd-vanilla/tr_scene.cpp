@@ -410,7 +410,7 @@ void RE_RenderScene( const refdef_t *fd ) {
         pHmdRenderer->BeginRenderingForEye(leftEye);
         
         // calculate body yaw
-        parms.bodyYaw = ClientHmd::Get()->GetYawDiff() + tr.refdef.delta_yaw;    
+        parms.bodyYaw += ClientHmd::Get()->GetYawDiff() + tr.refdef.delta_yaw;    
 
         //tr.refdef.stereoFrame = (leftEye ? STEREO_RIGHT : STEREO_LEFT); 
     }      

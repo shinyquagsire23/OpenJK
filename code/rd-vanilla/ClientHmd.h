@@ -20,7 +20,7 @@ public:
     static void Destroy();
 
     void UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float& rRoll);
-    void UpdateGame();
+    void UpdateGame(float& yaw);
     bool GetOrientation(float& rPitch, float& rYaw, float& rRoll);
 
     IHmdDevice* GetDevice() { return mpDevice; }
