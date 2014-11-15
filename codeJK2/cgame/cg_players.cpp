@@ -4995,6 +4995,7 @@ Ghoul2 Insert Start
 				{//I am the player
 					if ( cg.snap->ps.weapon != WP_SABER && cg.snap->ps.weapon != WP_MELEE )
 					{//not using saber or fists
+						//HMD: TODO: Make third vs first person models an option
 						ent.renderfx = RF_THIRD_PERSON;			// only draw in mirrors
 					}
 				}

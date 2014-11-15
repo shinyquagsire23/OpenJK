@@ -1310,7 +1310,41 @@ CROSSHAIR
 CG_DrawCrosshair
 =================
 */
-static void CG_DrawCrosshair( vec3_t worldPoint ) 
+static void CG_PlaceCrosshairInWorld(vec3_t worldPoint, float crosshairEntDist, float size, qhandle_t hShader, vec4_t ecolor)
+{
+    // [LAva] got the basics from ioquake / ioq3
+    
+    //char rendererinfos[128];
+    //trap_Cvar_VariableStringBuffer("r_zProj", rendererinfos, sizeof(rendererinfos));
+    //float zProj = atof(rendererinfos);
+
+    float xmax = tan(cg.refdef.fov_x * M_PI / 360.0f);
+    //printf("xmax=%.2f fov_x=%.2f dist=%.2f\n", xmax, cg.refdef.fov_x, crosshairEntDist);
+    
+    refEntity_t ent;
+
+    memset(&ent, 0, sizeof(ent));
+    ent.reType = RT_SPRITE;
+    ent.renderfx = RF_DEPTHHACK;
+
+    VectorCopy(worldPoint, ent.origin);
+
+    // scale the crosshair so it appears the same size for all distances
+    ent.radius = size / 640 * xmax * crosshairEntDist;
+    ent.customShader = hShader;
+    ent.shaderRGBA[0] = ecolor[0]*255;
+    ent.shaderRGBA[1] = ecolor[1]*255;
+    ent.shaderRGBA[2] = ecolor[2]*255;
+    ent.shaderRGBA[3] = ecolor[3]*255;
+
+    cgi_R_AddRefEntityToScene(&ent);    
+}
+
+
+#ifdef _XBOX
+short cg_crossHairStatus = 0;
+#endif
+static void CG_DrawCrosshair( vec3_t worldPoint, float crosshairEntDist)
 {
 	float		w, h;
 	qhandle_t	hShader;
@@ -1318,6 +1352,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 	vec4_t		ecolor;
 	float		f;
 	float		x, y;
+
 
 	if ( !cg_drawCrosshair.integer ) 
 	{
@@ -1330,6 +1365,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		return;
 	}
 
+#ifdef _XBOX
+	cg_crossHairStatus = 0;
+#endif
 	//set color based on what kind of ent is under crosshair
 	if ( g_crosshairEntNum >= ENTITYNUM_WORLD )
 	{
@@ -1355,6 +1393,16 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 				ecolor[1] = 1.0f;//G
 				ecolor[2] = 1.0f;//B
 			}
+			else if ( g_entities[0].client && g_entities[0].client->playerTeam == TEAM_FREE )
+			{//evil player: everyone is red
+#ifdef _XBOX
+				cg_crossHairStatus = 1;
+#endif
+				//Enemies are red
+				ecolor[0] = 1.0f;//R
+				ecolor[1] = 0.1f;//G
+				ecolor[2] = 0.1f;//B
+			}
 			else if ( crossEnt->client->playerTeam == TEAM_PLAYER )
 			{
 				//Allies are green
@@ -1371,6 +1419,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			}
 			else
 			{
+#ifdef _XBOX
+				cg_crossHairStatus = 1;
+#endif
 				//Enemies are red
 				ecolor[0] = 1.0f;//R
 				ecolor[1] = 0.1f;//G
@@ -1390,6 +1441,9 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			else
 			{
 				// hostile ones are red
+#ifdef _XBOX
+				cg_crossHairStatus = 1;
+#endif
 				ecolor[0] = 1.0;//R
 				ecolor[1] = 0.0;//G
 				ecolor[2] = 0.0;//B
@@ -1398,10 +1452,19 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		else if ( crossEnt->s.weapon == WP_TRIP_MINE )
 		{
 			// tripmines are red
+#ifdef _XBOX
+			cg_crossHairStatus = 1;
+#endif
 			ecolor[0] = 1.0;//R
 			ecolor[1] = 0.0;//G
 			ecolor[2] = 0.0;//B
 		}
+		/*else if ( (crossEnt->flags&FL_RED_CROSSHAIR) )
+		{//special case flagged to turn crosshair red
+			ecolor[0] = 1.0;//R
+			ecolor[1] = 0.0;//G
+			ecolor[2] = 0.0;//B
+		}*/
 		else
 		{
 			VectorCopy( crossEnt->startRGBA, ecolor );
@@ -1492,39 +1555,43 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		h *= ( 1 + f );
 	}
 
-	if ( worldPoint && VectorLength( worldPoint ) )
-	{
-		if ( !CG_WorldCoordToScreenCoordFloat( worldPoint, &x, &y ) )
-		{//off screen, don't draw it
-			return;
-		}
-		x -= 320;//????
-		y -= 240;//????
-	}
-	else
-	{
-		x = cg_crosshairX.integer;
-		y = cg_crosshairY.integer;
-	}
+//	if ( worldPoint && VectorLength( worldPoint ) )
+//	{
+//		if ( !CG_WorldCoordToScreenCoordFloat( worldPoint, &x, &y ) )
+//		{//off screen, don't draw it
+//			return;
+//		}
+//		x -= 320;//????
+//		y -= 240;//????
+//	}
+//	else
+//	{
+//		x = cg_crosshairX.integer;
+//		y = cg_crosshairY.integer;
+//	}
 
 	if ( cg.snap->ps.viewEntity > 0 && cg.snap->ps.viewEntity < ENTITYNUM_WORLD )
 	{
 		if ( !Q_stricmp( "misc_panel_turret", g_entities[cg.snap->ps.viewEntity].classname ))
 		{
 			// draws a custom crosshair that is twice as large as normal
-			cgi_R_DrawStretchPic( x + cg.refdef.x + 320 - w, 
-				y + cg.refdef.y + 240 - h, 
-				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );	
+            CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w*2, cgs.media.turretCrossHairShader, ecolor);
+//			cgi_R_DrawStretchPic( x + cg.refdef.x + 320 - w, 
+//				y + cg.refdef.y + 240 - h, 
+//				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );	
 
 		}
 	}
 	else 
 	{
+
+
 		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 
-		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w), 
-			y + cg.refdef.y + 0.5 * (480 - h), 
-			w, h, 0, 0, 1, 1, hShader );	
+        CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w, hShader, ecolor);
+		//cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w),
+		//	y + cg.refdef.y + 0.5 * (480 - h),
+		//	w, h, 0, 0, 1, 1, hShader );
 	}
 
 	if ( cg.forceCrosshairStartTime && cg_crosshairForceHint.integer ) // drawing extra bits
@@ -1537,10 +1604,11 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		w *= 2.0f;
 		h *= 2.0f;
 
-		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5f * ( 640 - w ), y + cg.refdef.y + 0.5f * ( 480 - h ), 
-								w, h, 
-								0, 0, 1, 1, 
-								cgs.media.forceCoronaShader ); 
+        CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w, cgs.media.forceCoronaShader, ecolor);        
+//		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5f * ( 640 - w ), y + cg.refdef.y + 0.5f * ( 480 - h ), 
+//								w, h, 
+//								0, 0, 1, 1, 
+//								cgs.media.forceCoronaShader ); 
 	}
 }
 
@@ -1774,7 +1842,7 @@ static void CG_ScanForCrosshairEntity( qboolean scanAll )
 	}
 	if ( !cg_forceCrosshair )
 	{
-		if ( cg_dynamicCrosshair.integer )
+		if ( 1 ) //cg_dynamicCrosshair.integer )
 		{//100% accurate
 			vec3_t d_f, d_rt, d_up;
 			if ( cg.snap->ps.weapon == WP_NONE || 
@@ -1843,11 +1911,15 @@ static void CG_ScanForCrosshairEntity( qboolean scanAll )
 		return;
 	}
 */
-	//draw crosshair at endpoint
-	CG_DrawCrosshair( trace.endpos );
 
 	g_crosshairEntNum = trace.entityNum;
 	g_crosshairEntDist = 4096*trace.fraction;
+
+	//CROSSHAIR is now always drawn from this trace so it's 100% accurate
+	if ( 1 )	//(cg_dynamicCrosshair.integer )
+	{//draw crosshair at endpoint
+		CG_DrawCrosshair( trace.endpos, g_crosshairEntDist);
+	}   
 
 	if ( !traceEnt )
 	{
@@ -1915,7 +1987,7 @@ static void CG_DrawCrosshairNames( void )
 	qboolean	scanAll = qfalse;
 	centity_t	*player = &cg_entities[0];
 
-	if ( cg_dynamicCrosshair.integer )
+	if ( 1 ) //cg_dynamicCrosshair.integer )
 	{
 		// still need to scan for dynamic crosshair
 		CG_ScanForCrosshairEntity( scanAll );
@@ -2327,7 +2399,7 @@ static void CG_Draw2D( void )
 		//}
 
 
-		CG_DrawCrosshairNames();
+		//CG_DrawCrosshairNames();
 
 		CG_RunRocketLocking();
 
@@ -2463,10 +2535,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		separation = 0;
 		break;
 	case STEREO_LEFT:
-		separation = -cg_stereoSeparation.value / 2;
+		separation = 0;//-cg_stereoSeparation.value / 2;
 		break;
 	case STEREO_RIGHT:
-		separation = cg_stereoSeparation.value / 2;
+		separation = 0;//cg_stereoSeparation.value / 2;
 		break;
 	default:
 		separation = 0;
@@ -2488,7 +2560,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		cgi_R_LAGoggles();
 	}
 
+	cg.refdef.stereoFrame = stereoView;
+
 	// draw 3D view
+	CG_DrawCrosshairNames();
 	cgi_R_RenderScene( &cg.refdef );
 
 	// restore original viewpoint if running stereo
