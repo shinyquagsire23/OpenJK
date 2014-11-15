@@ -1730,11 +1730,11 @@ extern void CG_ChangeWeapon( int num );
 
 			if ( ent->client->ps.weapon == WP_SABER && cg_saberAutoThird.value )
 			{
-				gi.cvar_set( "cg_thirdperson", "1" );
+				//gi.cvar_set( "cg_thirdperson", "1" );
 			}
 			else if ( ent->client->ps.weapon != WP_SABER && cg_gunAutoFirst.value )
 			{
-				gi.cvar_set( "cg_thirdperson", "0" );
+				//gi.cvar_set( "cg_thirdperson", "0" );
 			}
 		}
 	}

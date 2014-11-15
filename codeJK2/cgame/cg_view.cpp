@@ -748,7 +748,7 @@ static void CG_OffsetThirdPersonView( void )
 		}
 	}
 
-	if ( !cg.renderingThirdPerson && (cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE) )
+	if ( !cg.renderingThirdPerson )// && (cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE) )
 	{// First person saber
 		// FIXME: use something network-friendly
 		vec3_t	org, viewDir;
@@ -1572,32 +1572,19 @@ static qboolean CG_CalcViewValues( void ) {
 	// calculate size of 3D view
 	CG_CalcVrect();
 
-	if( cg.snap->ps.viewEntity != 0 && cg.snap->ps.viewEntity < ENTITYNUM_WORLD )
-	{
-		if( g_entities[cg.snap->ps.viewEntity].client && g_entities[cg.snap->ps.viewEntity].NPC )
-		{
-			ps = &g_entities[cg.snap->ps.viewEntity].client->ps;
-		}
-		else
-		{
-			ps = &cg.predicted_player_state;
-			viewEntIsCam = qtrue;
-		}
-	}
-	else
-	{
-		ps = &cg.predicted_player_state;
-	}
+	ps = &cg.predicted_player_state;
 #ifndef FINAL_BUILD
 	trap_Com_SetOrgAngles(ps->origin,ps->viewangles);
 #endif
 	// intermission view
+	/*
 	if ( ps->pm_type == PM_INTERMISSION ) {
 		VectorCopy( ps->origin, cg.refdef.vieworg );
 		VectorCopy( ps->viewangles, cg.refdefViewAngles );
 		AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 		return CG_CalcFov();
 	}
+	*/
 
 	cg.bobcycle = ( ps->bobCycle & 128 ) >> 7;
 	cg.bobfracsin = fabs( sin( ( ps->bobCycle & 127 ) / 127.0 * M_PI ) );
@@ -1666,12 +1653,25 @@ static qboolean CG_CalcViewValues( void ) {
 			{
 				vec3_t dir;
 				CG_OffsetFirstPersonView( qtrue );
-				cg.refdef.vieworg[2] += 32;
+				cg.refdef.vieworg[2] += 36;
 				AngleVectors( cg.refdefViewAngles, dir, NULL, NULL );
-				VectorMA( cg.refdef.vieworg, -2, dir, cg.refdef.vieworg );
+				dir[2] = 0;
+                VectorNormalize(dir);
+                
+				VectorMA( cg.refdef.vieworg, 0, dir, cg.refdef.vieworg );
+
+                centity_t	*playerCent = &cg_entities[0];
+                if ( playerCent && playerCent->gent && playerCent->gent->client )
+                {
+                    VectorCopy( cg.refdef.vieworg, playerCent->gent->client->renderInfo.eyePoint );
+                    VectorCopy( cg.refdefViewAngles, playerCent->gent->client->renderInfo.eyeAngles );
+                }
 			}
 		}
-		CG_OffsetThirdPersonView();
+		else 
+		{
+			CG_OffsetThirdPersonView();
+		}
 //		}
 	}  
 	else 
@@ -1724,6 +1724,18 @@ static qboolean CG_CalcViewValues( void ) {
 		cg.refdefViewAngles[ROLL] += ( sin( cg.time * 0.0004f )  * 7.0f * perc );
 		cg.refdefViewAngles[PITCH] += ( 26.0f * perc + sin( cg.time * 0.0011f ) * 3.0f * perc );
 	}
+
+	VectorCopy(cg.refdefViewAngles, cg.refdefViewAngles);
+
+    cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
+	//Com_Printf("[CG] Current yaw: %f\n", cg.refdefViewAngles[YAW]); 
+    float pitch, yaw, roll;
+    /*if (GameHmd::Get()->GetOrientation(pitch, yaw, roll))
+    {	
+        cg.refdefViewAngles[ROLL] = roll;
+        cg.refdefViewAngles[PITCH] = pitch;
+        cg.refdefViewAngles[YAW] = yaw + SHORT2ANGLE(ps->delta_angles[YAW]);
+    }*/
 
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 
@@ -1814,6 +1826,69 @@ extern vec3_t	serverViewOrg;
 void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	qboolean	inwater = qfalse;
 
+	if (stereoView == STEREO_RIGHT) 
+    {
+        cg.refdef.stereoFrame = stereoView;
+                
+        if ( cg.infoScreenText[0] != 0 ) {
+            CG_DrawInformation();
+            return;
+        }
+        
+        if ( !cg.snap ) {
+            //CG_DrawInformation();
+            return;
+        }        
+        
+        
+        //[LAva] TODO: check if we still need this
+        //theFxHelper.AdjustTime( 1 );             
+        
+        // NOTE: this may completely override the camera
+		CG_RunEmplacedWeapon();
+
+		// first person blend blobs, done after AnglesToAxis
+		if ( !cg.renderingThirdPerson ) {
+			CG_DamageBlendBlob();		
+		}       
+        
+        // build the render lists
+	if ( !cg.hyperspace ) {
+		CG_AddPacketEntities();			// adter calcViewValues, so predicted player state is correct
+		CG_AddMarks();
+		CG_AddLocalEntities();
+	}
+        
+        // Don't draw the in-view weapon when in camera mode
+	if ( !in_camera 
+		&& !cg_pano.integer 
+		&& cg.snap->ps.weapon != WP_SABER
+		&& ( cg.snap->ps.viewEntity == 0 || cg.snap->ps.viewEntity >= ENTITYNUM_WORLD ) )
+	{
+		CG_AddViewWeapon( &cg.predicted_player_state );
+	}
+	else if( cg.snap->ps.viewEntity != 0 && cg.snap->ps.viewEntity < ENTITYNUM_WORLD &&
+		g_entities[cg.snap->ps.viewEntity].client)
+	{
+		CG_AddViewWeapon( &g_entities[cg.snap->ps.viewEntity ].client->ps );	// HAX - because I wanted to --eez
+	}
+
+	if ( !cg.hyperspace ) 
+	{
+		//Add all effects
+		theFxScheduler.AddScheduledEffects( );
+	}
+
+	// finish up the rest of the refdef
+	if ( cg.testModelEntity.hModel ) {
+		CG_AddTestModel();
+	}
+        
+        CG_DrawActive( stereoView );
+        
+		return;
+	}
+
 	cg.time = serverTime;
 
 	// update cvars
@@ -1895,6 +1970,7 @@ wasForceSpeed=isForceSpeed;
 	// decide on third person view
 	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0) || (g_entities[0].client&&g_entities[0].client->NPC_class==CLASS_ATST);
 
+
 	if ( cg.zoomMode )
 	{
 		// zoomed characters should never do third person stuff??
@@ -1913,6 +1989,8 @@ wasForceSpeed=isForceSpeed;
 		// build cg.refdef
 		inwater = CG_CalcViewValues();
 	}
+
+	cg.refdef.stereoFrame = stereoView;
 
 	// NOTE: this may completely override the camera
 	CG_RunEmplacedWeapon();
@@ -1973,12 +2051,8 @@ wasForceSpeed=isForceSpeed;
 		&& cg.snap->ps.weapon != WP_SABER
 		&& ( cg.snap->ps.viewEntity == 0 || cg.snap->ps.viewEntity >= ENTITYNUM_WORLD ) )
 	{
+		//HMD: TODO: Make third vs first person models an option
 		CG_AddViewWeapon( &cg.predicted_player_state );
-	}
-	else if( cg.snap->ps.viewEntity != 0 && cg.snap->ps.viewEntity < ENTITYNUM_WORLD &&
-		g_entities[cg.snap->ps.viewEntity].client)
-	{
-		CG_AddViewWeapon( &g_entities[cg.snap->ps.viewEntity ].client->ps );	// HAX - because I wanted to --eez
 	}
 
 	if ( !cg.hyperspace ) 
