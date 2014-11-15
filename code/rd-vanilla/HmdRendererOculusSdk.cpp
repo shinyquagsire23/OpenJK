@@ -44,6 +44,9 @@ HmdRendererOculusSdk::~HmdRendererOculusSdk()
 
 bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo platformInfo)
 {
+#ifdef JK2_MODE
+Com_Printf("HMD setting up JK2...\n");
+#endif
     Com_Printf("HMD setting up...\n");
     if (mpDevice == NULL || mpDevice->GetHmd() == NULL)
     {
@@ -280,11 +283,60 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
         return false;
     }
 
-	//Com_Printf("[HMD] Current yaw: %f\n", bodyYaw);
+	float bodyDiff = lastBodyYaw - bodyYaw_;
+
+    if(bodyMove == 9001)
+		bodyMove = bodyYaw_;
+
+	// Make an imaginary box where the crosshair can roam free from the head.
+	// Similar to HL2/TF2's aiming setup. TODO: Make box width & height adjustable w/ cvars
+	// To work with 360/0 degree looping, the difference in yaw is checked to be
+	// over 300 (aka an unusual turn amount). This amount *can* be hit normally but
+	// it's unlikely to be hit in normal play. TODO: Maybe fix that to be better.
+
+	const int BOX_WIDTH = 10; //In degrees. Higher values tend to glitch more stereoscopically.
+	if((bodyYaw_ < (bodyMove - BOX_WIDTH) || bodyYaw_ > (bodyMove + BOX_WIDTH)))
+	{
+		//bodyTotalDiff += bodyDiff;
+		if(bodyYaw_ < (bodyMove - BOX_WIDTH) && (bodyDiff < 300 && bodyDiff > -300))
+		{
+			bodyTotalDiff = BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+		else if(bodyYaw_ > (bodyMove + BOX_WIDTH) && (bodyDiff < 300 && bodyDiff > -300))
+		{
+			bodyTotalDiff = -BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+		else if(bodyDiff > 300)
+		{
+			bodyTotalDiff = -BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+		else if(bodyDiff < -300)
+		{
+			bodyTotalDiff = BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+
+		bodyYaw = bodyYaw_ + bodyTotalDiff;
+	}
+	else
+	{
+		bodyTotalDiff = 0;
+		bodyYaw = bodyMove;
+	}
+
+	//Com_Printf("[HMD] Current eye: %i\n", mCurrentFbo);
+	//Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);
+	//Com_Printf("[HMD] Current body move: %f\n", bodyMove);
+	//if(bodyDiff > 300 || bodyDiff < -300)
+		//Com_Printf("[HMD] Current body diff: %f\n", bodyDiff);
+
 
     // get current hmd rotation
     float quat[4];
-    bodyYaw = bodyYaw_;
+    //bodyYaw = bodyYaw_;
     ovrPosef pose = mpTs.HeadPose.ThePose;
     quat[0] = pose.Orientation.x;
     quat[1] = pose.Orientation.y;
@@ -316,6 +368,7 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 
     memcpy(rViewMatrix, &viewMatrix[0][0], sizeof(float) * 16);
 
+lastBodyYaw = bodyYaw_;
 
     return true;
 }

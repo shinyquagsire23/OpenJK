@@ -67,6 +67,9 @@ private:
     unsigned int distort_caps;
     const bool RENDER_WITH_DISTORT = 1;
     float bodyYaw = 0;
+    float bodyMove = 9001;
+    float lastBodyYaw = 0;
+	float bodyTotalDiff = 0;
 
     int mCurrentFbo;
 

@@ -716,7 +716,8 @@ usercmd_t CL_CreateCmd( void ) {
 	} 
 
 	float yawDiff = cl.viewangles[YAW] - oldAngles[YAW];
-	//UpdateInputView(yawDiff, cl.viewangles[PITCH], cl.viewangles[YAW], cl.viewangles[ROLL]);
+	float pitchDiff = cl.viewangles[PITCH] - oldAngles[PITCH];
+	UpdateInputView(yawDiff, pitchDiff, cl.viewangles[PITCH], cl.viewangles[YAW], cl.viewangles[ROLL]);
 
 	if ( cl_overrideAngles )
 	{
@@ -741,8 +742,11 @@ usercmd_t CL_CreateCmd( void ) {
 
 float mLastViewangleYaw;
 float mViewangleDiff;
+float mLastViewanglePitch;
+float mViewpitchDiff;
+float lastPitch;
 ovrHmd mpHmd;
-void UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float& rRoll)
+void UpdateInputView(float yawDiff, float pitchDiff, float& rPitch, float& rYaw, float& rRoll)
 {
     if (mpHmd == NULL)
     {
@@ -759,8 +763,9 @@ void UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float& rRoll)
 
     mViewangleDiff += yawDiff;
     mViewangleDiff = fmod(mViewangleDiff, 360.0f);
-
     mLastViewangleYaw = rYaw;
+
+    mLastViewanglePitch = rPitch;	
 
     float pitch = 0;
     float yaw = 0;
@@ -778,13 +783,21 @@ void UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float& rRoll)
     yaw = RAD2DEG(yaw);
     roll = RAD2DEG(-roll);
 
-    rPitch = pitch;
+    mViewpitchDiff += pitchDiff;
+    mViewpitchDiff += (lastPitch - pitch);
+    mViewpitchDiff = fmod(mViewpitchDiff, 360.0f);
+
+    mViewpitchDiff = std::max(mViewpitchDiff, -20.0f);
+    mViewpitchDiff = std::min(mViewpitchDiff, 20.0f);
+
+    rPitch = pitch + mViewpitchDiff;
 
     rPitch = std::max(rPitch, -80.0f);
     rPitch = std::min(rPitch, 80.0f);
 
-    rYaw = ((yaw) + mViewangleDiff);
+    rYaw = mViewangleDiff;// + yaw;
     mLastViewangleYaw = rYaw;
+    lastPitch = pitch;
 }
 
 void ConvertQuatToEuler(const float* quat, float& rYaw, float& rPitch, float& rRoll)

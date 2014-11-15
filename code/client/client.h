@@ -309,7 +309,7 @@ extern 	kbutton_t 	in_speed;
 
 void CL_InitInput (void);
 void CL_SendCmd (void);
-void UpdateInputView(float yawDiff, float& rPitch, float& rYaw, float& rRoll);
+void UpdateInputView(float yawDiff, float pitchDiff, float& rPitch, float& rYaw, float& rRoll);
 void ConvertQuatToEuler(const float* quat, float& rYaw, float& rPitch, float& rRoll);
 bool GetOrientation(float& rPitch, float& rYaw, float& rRoll);
 void CL_ClearState (void);
