@@ -44,9 +44,6 @@ HmdRendererOculusSdk::~HmdRendererOculusSdk()
 
 bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo platformInfo)
 {
-#ifdef JK2_MODE
-Com_Printf("HMD setting up JK2...\n");
-#endif
     Com_Printf("HMD setting up...\n");
     if (mpDevice == NULL || mpDevice->GetHmd() == NULL)
     {
@@ -295,43 +292,39 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	// it's unlikely to be hit in normal play. TODO: Maybe fix that to be better.
 
 	const int BOX_WIDTH = 10; //In degrees. Higher values tend to glitch more stereoscopically.
-	if((bodyYaw_ < (bodyMove - BOX_WIDTH) || bodyYaw_ > (bodyMove + BOX_WIDTH)))
-	{
-		//bodyTotalDiff += bodyDiff;
-		if(bodyYaw_ < (bodyMove - BOX_WIDTH) && (bodyDiff < 300 && bodyDiff > -300))
-		{
-			bodyTotalDiff = BOX_WIDTH;
-			bodyMove = bodyYaw_ + bodyTotalDiff;
-		}
-		else if(bodyYaw_ > (bodyMove + BOX_WIDTH) && (bodyDiff < 300 && bodyDiff > -300))
-		{
-			bodyTotalDiff = -BOX_WIDTH;
-			bodyMove = bodyYaw_ + bodyTotalDiff;
-		}
-		else if(bodyDiff > 300)
-		{
-			bodyTotalDiff = -BOX_WIDTH;
-			bodyMove = bodyYaw_ + bodyTotalDiff;
-		}
-		else if(bodyDiff < -300)
-		{
-			bodyTotalDiff = BOX_WIDTH;
-			bodyMove = bodyYaw_ + bodyTotalDiff;
-		}
+	if(bodyDiff < 300 && bodyDiff > -300)
+		bodyTotalDiff += bodyDiff;
 
-		bodyYaw = bodyYaw_ + bodyTotalDiff;
-	}
-	else
+	//For some reason when you die or go into a cam your yaw skyrockets and leaves it weird afterwards (offset or whatnot). A bit hacky but works to reset yaw after deaths.
+	if(bodyYaw > 500 || bodyYaw < -500)
 	{
 		bodyTotalDiff = 0;
+		bodyModDiff = 0;
+		bodyDiff = 0;
+		bodyMove = bodyYaw_;
 		bodyYaw = bodyMove;
 	}
 
-	//Com_Printf("[HMD] Current eye: %i\n", mCurrentFbo);
-	//Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);
-	//Com_Printf("[HMD] Current body move: %f\n", bodyMove);
-	//if(bodyDiff > 300 || bodyDiff < -300)
-		//Com_Printf("[HMD] Current body diff: %f\n", bodyDiff);
+	if(bodyTotalDiff <= -BOX_WIDTH || bodyTotalDiff >= BOX_WIDTH)
+	{
+		bodyYaw = bodyYaw_ + bodyModDiff;
+		bodyMove = bodyYaw_ + bodyModDiff;
+		bodyTotalDiff = (bodyTotalDiff < 0 ? -BOX_WIDTH : BOX_WIDTH);
+	}
+	else
+	{
+		bodyYaw = bodyMove;
+		bodyModDiff += bodyDiff;
+	}
+
+	/*if(bodyDiff > 20 || bodyDiff < -20)
+	{
+		Com_Printf("[HMD] Current body diff: %f\n", bodyDiff);
+		Com_Printf("[HMD] Current eye: %i\n", mCurrentFbo);
+		Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);
+		Com_Printf("[HMD] Current applied yaw: %f\n", bodyYaw);
+		Com_Printf("[HMD] Current body move: %f\n", bodyMove);
+	}*/
 
 
     // get current hmd rotation

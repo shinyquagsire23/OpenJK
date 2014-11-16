@@ -25,6 +25,10 @@ This file is part of Jedi Knight 2.
 
 #include "../game/g_roff.h"
 
+#include "../../code/rd-vanilla/ClientHmd.h"
+#include "../../code/rd-vanilla/IHmdDevice.h"
+#include "../../code/rd-vanilla/HmdDeviceOculusSdk.h"
+
 bool		in_camera = false;
 camera_t	client_camera={};
 extern qboolean	player_locked;
@@ -1024,6 +1028,7 @@ CGCam_UpdateFade
 
 void CGCam_UpdateFade( void )
 {
+	return;
 	if ( client_camera.info_state & CAMERA_FADING )
 	{
 		if ( client_camera.fade_time + client_camera.fade_duration < cg.time )
@@ -1047,6 +1052,55 @@ CGCam_Update
 */
 static void CGCam_Roff( void );
 
+void ConvertQuatToEuler(const float* quat, float& rYaw, float& rPitch, float& rRoll)
+{
+    //https://svn.code.sf.net/p/irrlicht/code/trunk/include/quaternion.h
+    // modified to get yaw before pitch
+
+    float W = quat[3];
+    float X = quat[1];
+    float Y = quat[0];
+    float Z = quat[2];
+
+    float sqw = W*W;
+    float sqx = X*X;
+    float sqy = Y*Y;
+    float sqz = Z*Z;
+
+    float test = 2.0f * (Y*W - X*Z);
+
+    if (test > (1.0f - 0.000001f))
+    {
+        // heading = rotation about z-axis
+        rRoll = (-2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        rYaw = 0;
+        // attitude = rotation about y-axis
+        rPitch = M_PI/2.0f;
+    }
+    else if (test < (-1.0f + 0.000001f))
+    {
+        // heading = rotation about z-axis
+        rRoll = (2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        rYaw = 0;
+        // attitude = rotation about y-axis
+        rPitch = M_PI/-2.0f;
+    }
+    else
+    {
+        // heading = rotation about z-axis
+        rRoll = atan2(2.0f * (X*Y +Z*W),(sqx - sqy - sqz + sqw));
+        // bank = rotation about x-axis
+        rYaw = atan2(2.0f * (Y*Z +X*W),(-sqx - sqy + sqz + sqw));
+        // attitude = rotation about y-axis
+        test = max(test, -1.0f);
+        test = min(test, 1.0f);
+        rPitch = asin(test);
+    }
+}
+
+ovrHmd mpHmd;
 void CGCam_Update( void )
 {
 	int	i;
@@ -1177,9 +1231,29 @@ void CGCam_Update( void )
 	cg.refdefViewAngles[2] = cg.predicted_player_state.viewangles[2];
 
 	
-    //VectorCopy(cg.refdefViewAngles, cg.refdefViewAnglesWeapon);
+    VectorCopy(cg.refdefViewAngles, cg.refdefViewAnglesWeapon);
 
     cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
+
+    float pitch, yaw, roll;
+
+    float quat[4];
+    ovrPosef pose = ovrHmd_GetTrackingState(mpHmd, ovr_GetTimeInSeconds()).HeadPose.ThePose;
+    quat[0] = pose.Orientation.x;
+    quat[1] = pose.Orientation.y;
+    quat[2] = pose.Orientation.z;
+    quat[3] = pose.Orientation.w;
+    ConvertQuatToEuler(&quat[0], yaw, pitch, roll);
+
+    pitch = RAD2DEG(-pitch);
+    yaw = RAD2DEG(yaw);
+    roll = RAD2DEG(-roll);
+
+    cg.refdefViewAngles[ROLL] = roll;
+    cg.refdefViewAngles[PITCH] = pitch;
+    cg.refdefViewAngles[YAW] += yaw;
+
+	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 }
 
 /*

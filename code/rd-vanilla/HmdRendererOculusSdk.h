@@ -70,6 +70,7 @@ private:
     float bodyMove = 9001;
     float lastBodyYaw = 0;
 	float bodyTotalDiff = 0;
+	float bodyModDiff = 0;
 
     int mCurrentFbo;
 
