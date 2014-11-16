@@ -18,6 +18,7 @@
 #include <OVR_CAPI.h>
 #include <OVR_CAPI_GL.h>
 #include <OVR_CAPI_GL.h>
+#include <CAPI/CAPI_HSWDisplay.h>
 
 #include "tr_local.h"
 
@@ -121,13 +122,12 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     {
         if(!ovrHmd_ConfigureRendering(mpHmd, &glcfg.Config, distort_caps, mpHmd->DefaultEyeFov, eye_rdesc)) 
         {
-            fprintf(stderr, "failed to configure distortion renderer\n");
+            Com_Printf("failed to configure distortion renderer\n");
         }
     }
 
     /* disable the retarded "health and safety warning" */
-    //ovrhmd_EnableHSWDisplaySDKRender(mpHmd, 0);
-ovrHmd_DismissHSWDisplay(mpHmd);
+    ovrhmd_EnableHSWDisplaySDKRender(mpHmd, false);
 
     mCurrentFbo = -1;
     mIsInitialized = true;
