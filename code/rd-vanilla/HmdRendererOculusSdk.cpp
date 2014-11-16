@@ -246,7 +246,7 @@ bool HmdRendererOculusSdk::GetCustomProjectionMatrix(float* rProjectionMatrix, f
 
     float fov_rad = DEG2RAD(fov);
     float aspect = 0;
-    aspect = mWindowWidth / (2.0f* mWindowHeight);
+    aspect = mWindowWidth / (2.1f* mWindowHeight);
 
     if (fov_rad == 0 || aspect == 0)
     {
@@ -279,6 +279,9 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
     {
         return false;
     }
+
+    //meter to game unit (game unit = feet*2)
+    float meterToGame = 3.28084f*2.0f;
 
 	float bodyDiff = lastBodyYaw - bodyYaw_;
 
@@ -343,6 +346,13 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 
     glm::mat4 hmdRotationMat = glm::mat4_cast(hmdRotation) * glm::mat4_cast(convertHmdToGame);
 
+	//Com_Printf("X: %f\n", pose.Position.x);
+	//Com_Printf("Y: %f\n", pose.Position.y);
+	//Com_Printf("Z: %f\n\n", pose.Position.z);
+
+	xPos += pose.Position.x * meterToGame;
+	yPos += pose.Position.y * meterToGame;
+	zPos += pose.Position.z * meterToGame;
 
     // convert body transform to matrix
     glm::mat4 bodyPosition = glm::translate(glm::mat4(1.0f), glm::vec3(-xPos, -yPos, -zPos));
@@ -351,8 +361,6 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
     // create view matrix
     glm::mat4 viewMatrix = hmdRotationMat * glm::mat4_cast(bodyYawRotation) * bodyPosition;
 
-    //meter to game unit (game unit = feet*2)
-    float meterToGame = 3.28084f*2.0f;
     // apply ipd
     float halfIPD = mInterpupillaryDistance * 0.5f * meterToGame * (mCurrentFbo == 0 ? 1.0f : -1.0f);
 
