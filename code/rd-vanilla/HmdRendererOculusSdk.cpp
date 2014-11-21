@@ -324,9 +324,9 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	{
 		Com_Printf("[HMD] Current body diff: %f\n", bodyDiff);
 		Com_Printf("[HMD] Current eye: %i\n", mCurrentFbo);
-		Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);
+		Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);*/
 		Com_Printf("[HMD] Current applied yaw: %f\n", bodyYaw);
-		Com_Printf("[HMD] Current body move: %f\n", bodyMove);
+		/*Com_Printf("[HMD] Current body move: %f\n", bodyMove);
 	}*/
 
 
@@ -350,16 +350,21 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	//Com_Printf("Y: %f\n", pose.Position.y);
 	//Com_Printf("Z: %f\n\n", pose.Position.z);
 
-	xPos += pose.Position.x * meterToGame;
-	yPos += pose.Position.y * meterToGame;
-	zPos += pose.Position.z * meterToGame;
+	const float positional_amplification = 2.0f;
+
+	float quat_pos[4];
+    quat_pos[0] = (-pose.Position.z * positional_amplification * meterToGame * cos((float)DEG2RAD(bodyYaw))) - (-pose.Position.x * positional_amplification * meterToGame * sin((float)DEG2RAD(bodyYaw)));
+    quat_pos[1] = pose.Position.y * positional_amplification * meterToGame;
+    quat_pos[2] = (-pose.Position.z * positional_amplification * meterToGame * sin((float)DEG2RAD(bodyYaw))) + (-pose.Position.x * positional_amplification * meterToGame * cos((float)DEG2RAD(bodyYaw)));
+    quat_pos[3] = 0;
+	glm::mat4 hmdPosition = glm::translate(glm::mat4(1.0f), glm::vec3(-quat_pos[0], -quat_pos[2], -quat_pos[1]));
 
     // convert body transform to matrix
     glm::mat4 bodyPosition = glm::translate(glm::mat4(1.0f), glm::vec3(-xPos, -yPos, -zPos));
     glm::quat bodyYawRotation = glm::rotate(glm::quat(1.0f, 0.0f, 0.0f, 0.0f), (float)(DEG2RAD(-bodyYaw)), glm::vec3(0.0f, 0.0f, 1.0f));
 
     // create view matrix
-    glm::mat4 viewMatrix = hmdRotationMat * glm::mat4_cast(bodyYawRotation) * bodyPosition;
+    glm::mat4 viewMatrix = hmdRotationMat * glm::mat4_cast(bodyYawRotation) * bodyPosition * hmdPosition;
 
     // apply ipd
     float halfIPD = mInterpupillaryDistance * 0.5f * meterToGame * (mCurrentFbo == 0 ? 1.0f : -1.0f);

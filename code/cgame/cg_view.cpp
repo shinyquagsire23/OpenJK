@@ -27,6 +27,10 @@ This file is part of Jedi Academy.
 #include "../game/wp_saber.h"
 #include "../game/g_vehicles.h"
 
+#include "../rd-vanilla/ClientHmd.h"
+#include "../rd-vanilla/IHmdDevice.h"
+#include "../rd-vanilla/HmdDeviceOculusSdk.h"
+
 #define MASK_CAMERACLIP (MASK_SOLID)
 #define CAMERA_SIZE	4
 
@@ -1571,7 +1575,68 @@ CG_CalcViewValues
 Sets cg.refdef view values
 ===============
 */
+
+void ConvertQuatToEuler_(const float* quat, float& rYaw, float& rPitch, float& rRoll)
+{
+    //https://svn.code.sf.net/p/irrlicht/code/trunk/include/quaternion.h
+    // modified to get yaw before pitch
+
+    float W = quat[3];
+    float X = quat[1];
+    float Y = quat[0];
+    float Z = quat[2];
+
+    float sqw = W*W;
+    float sqx = X*X;
+    float sqy = Y*Y;
+    float sqz = Z*Z;
+
+    float test = 2.0f * (Y*W - X*Z);
+
+    if (test > (1.0f - 0.000001f))
+    {
+        // heading = rotation about z-axis
+        rRoll = (-2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        rYaw = 0;
+        // attitude = rotation about y-axis
+        rPitch = M_PI/2.0f;
+    }
+    else if (test < (-1.0f + 0.000001f))
+    {
+        // heading = rotation about z-axis
+        rRoll = (2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        rYaw = 0;
+        // attitude = rotation about y-axis
+        rPitch = M_PI/-2.0f;
+    }
+    else
+    {
+        // heading = rotation about z-axis
+        rRoll = atan2(2.0f * (X*Y +Z*W),(sqx - sqy - sqz + sqw));
+        // bank = rotation about x-axis
+        rYaw = atan2(2.0f * (Y*Z +X*W),(-sqx - sqy + sqz + sqw));
+        // attitude = rotation about y-axis
+        test = max(test, -1.0f);
+        test = min(test, 1.0f);
+        rPitch = asin(test);
+    }
+}
+
+ovrHmd mpHmd_;
 static qboolean CG_CalcViewValues( void ) {
+	if(mpHmd_ == NULL)
+	{
+		mpHmd_ = ovrHmd_Create(0);
+ 
+    		if (mpHmd_ == NULL)
+    		{
+            	Com_Printf("No hmd device found. Attempting to make debug device.\n");
+            	mpHmd_ = ovrHmd_CreateDebug(ovrHmd_DK2);
+    		}
+	}	
+
 	playerState_t	*ps;
 	qboolean		viewEntIsCam = qfalse;
 	//extern vec3_t	cgRefdefVieworg;
@@ -1743,17 +1808,24 @@ static qboolean CG_CalcViewValues( void ) {
 		cg.refdefViewAngles[PITCH] += ( 26.0f * perc + sin( cg.time * 0.0011f ) * 3.0f * perc );
 	}
 
-    VectorCopy(cg.refdefViewAngles, cg.refdefViewAngles);
-
     cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
 	//Com_Printf("[CG] Current yaw: %f\n", cg.refdefViewAngles[YAW]); 
     float pitch, yaw, roll;
-    /*if (GameHmd::Get()->GetOrientation(pitch, yaw, roll))
-    {	
-        cg.refdefViewAngles[ROLL] = roll;
-        cg.refdefViewAngles[PITCH] = pitch;
-        cg.refdefViewAngles[YAW] = yaw + SHORT2ANGLE(ps->delta_angles[YAW]);
-    }*/
+
+    float quat[4];
+    ovrPosef pose = ovrHmd_GetTrackingState(mpHmd_, ovr_GetTimeInSeconds()).HeadPose.ThePose;
+    quat[0] = pose.Orientation.x;
+    quat[1] = pose.Orientation.y;
+    quat[2] = pose.Orientation.z;
+    quat[3] = pose.Orientation.w;
+    ConvertQuatToEuler_(&quat[0], yaw, pitch, roll);
+
+    pitch = RAD2DEG(-pitch);
+    yaw = RAD2DEG(yaw);
+    roll = RAD2DEG(-roll);
+    cg.refdefViewAngles[ROLL] = roll;
+    cg.refdefViewAngles[PITCH] = pitch;
+    cg.refdefViewAngles[YAW] = yaw + SHORT2ANGLE(ps->delta_angles[YAW]);
 
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 

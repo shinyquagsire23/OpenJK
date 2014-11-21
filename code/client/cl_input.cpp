@@ -787,8 +787,8 @@ void UpdateInputView(float yawDiff, float pitchDiff, float& rPitch, float& rYaw,
     mViewpitchDiff += (lastPitch - pitch);
     mViewpitchDiff = fmod(mViewpitchDiff, 360.0f);
 
-    mViewpitchDiff = std::max(mViewpitchDiff, -20.0f);
-    mViewpitchDiff = std::min(mViewpitchDiff, 20.0f);
+    //mViewpitchDiff = std::max(mViewpitchDiff, -20.0f);
+    //mViewpitchDiff = std::min(mViewpitchDiff, 20.0f);
 
     rPitch = pitch + mViewpitchDiff;
 
