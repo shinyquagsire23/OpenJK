@@ -1371,10 +1371,10 @@ void CGCam_Update( void )
 	cg.refdefViewAngles[2] = cg.predicted_player_state.viewangles[2];
 
 	
-    //VectorCopy(cg.refdefViewAngles, cg.refdefViewAnglesWeapon);
+    VectorCopy(cg.refdefViewAngles, cg.refdefViewAnglesWeapon);
 
     cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
-	//Com_Printf("[CG] Current yaw: %f\n", cg.refdefViewAngles[YAW]); 
+
     float pitch, yaw, roll;
 
     float quat[4];
@@ -1391,7 +1391,7 @@ void CGCam_Update( void )
 
     cg.refdefViewAngles[ROLL] = roll;
     cg.refdefViewAngles[PITCH] = pitch;
-    cg.refdefViewAngles[YAW] = yaw;// + SHORT2ANGLE(ps->delta_angles[YAW]);
+    cg.refdefViewAngles[YAW] += yaw;
 
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 }

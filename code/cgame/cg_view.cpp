@@ -1808,7 +1808,9 @@ static qboolean CG_CalcViewValues( void ) {
 		cg.refdefViewAngles[PITCH] += ( 26.0f * perc + sin( cg.time * 0.0011f ) * 3.0f * perc );
 	}
 
-    cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
+	VectorCopy(cg.refdefViewAngles, cg.refdefViewAnglesWeapon);
+
+        cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
 	//Com_Printf("[CG] Current yaw: %f\n", cg.refdefViewAngles[YAW]); 
     float pitch, yaw, roll;
 
@@ -1823,9 +1825,10 @@ static qboolean CG_CalcViewValues( void ) {
     pitch = RAD2DEG(-pitch);
     yaw = RAD2DEG(yaw);
     roll = RAD2DEG(-roll);
+    
     cg.refdefViewAngles[ROLL] = roll;
     cg.refdefViewAngles[PITCH] = pitch;
-    cg.refdefViewAngles[YAW] = yaw + SHORT2ANGLE(ps->delta_angles[YAW]);
+    cg.refdefViewAngles[YAW] = cg.refdefViewAngles[YAW] + yaw;// + SHORT2ANGLE(ps->delta_angles[YAW]);
 
 	AnglesToAxis( cg.refdefViewAngles, cg.refdef.viewaxis );
 
