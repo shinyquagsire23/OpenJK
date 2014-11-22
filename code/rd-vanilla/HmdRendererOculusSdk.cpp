@@ -114,7 +114,7 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     //glcfg.OGL.Disp = glXGetCurrentDisplay();
     //glcfg.OGL.Win = glXGetCurrentDrawable();
 
-    hmd_caps = 0;//ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction;
+    hmd_caps = ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction;
     ovrHmd_SetEnabledCaps(mpHmd, hmd_caps);
 
     distort_caps = ovrDistortionCap_Chromatic;// | ovrDistortionCap_TimeWarp  | ovrDistortionCap_Overdrive;  | ovrDistortionCap_Vignette;
@@ -293,9 +293,42 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	// To work with 360/0 degree looping, the difference in yaw is checked to be
 	// over 300 (aka an unusual turn amount). This amount *can* be hit normally but
 	// it's unlikely to be hit in normal play. TODO: Maybe fix that to be better.
+	const int BOX_WIDTH = 16; //In degrees. Higher values tend to glitch more stereoscopically.
 
-	const int BOX_WIDTH = 10; //In degrees. Higher values tend to glitch more stereoscopically.
-	if(bodyDiff < 300 && bodyDiff > -300)
+	if((bodyYaw_ < (bodyMove - BOX_WIDTH) || bodyYaw_ > (bodyMove + BOX_WIDTH)))
+	{
+		//bodyTotalDiff += bodyDiff;
+		if(bodyYaw_ < (bodyMove - BOX_WIDTH) && (bodyDiff < 300 && bodyDiff > -300))
+		{
+			bodyTotalDiff = BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+		else if(bodyYaw_ > (bodyMove + BOX_WIDTH) && (bodyDiff < 300 && bodyDiff > -300))
+		{
+			bodyTotalDiff = -BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+		else if(bodyDiff > 300)
+		{
+			bodyTotalDiff = -BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+		else if(bodyDiff < -300)
+		{
+			bodyTotalDiff = BOX_WIDTH;
+			bodyMove = bodyYaw_ + bodyTotalDiff;
+		}
+
+		bodyYaw = bodyYaw_ + bodyTotalDiff;
+	}
+	else
+	{
+		bodyTotalDiff = 0;
+		bodyYaw = bodyMove;
+	}
+
+	//More simple version. Smoother and doesn't bug out at 360/0 degrees, but has a ton of bugs in regards to external cams.
+	/*if(bodyDiff < 300 && bodyDiff > -300)
 		bodyTotalDiff += bodyDiff;
 
 	//For some reason when you die or go into a cam your yaw skyrockets and leaves it weird afterwards (offset or whatnot). A bit hacky but works to reset yaw after deaths.
@@ -318,14 +351,15 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	{
 		bodyYaw = bodyMove;
 		bodyModDiff += bodyDiff;
-	}
+	}*/
+
 
 	/*if(bodyDiff > 20 || bodyDiff < -20)
 	{
 		Com_Printf("[HMD] Current body diff: %f\n", bodyDiff);
 		Com_Printf("[HMD] Current eye: %i\n", mCurrentFbo);
 		Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);*/
-		Com_Printf("[HMD] Current applied yaw: %f\n", bodyYaw);
+		//Com_Printf("[HMD] Current applied yaw: %f\n", bodyYaw);
 		/*Com_Printf("[HMD] Current body move: %f\n", bodyMove);
 	}*/
 
