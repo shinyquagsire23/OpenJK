@@ -59,13 +59,13 @@ source_group("renderer" FILES ${MPVanillaRendererFiles})
 		"${MPDir}/rd-vanilla/ClientHmd.h"
 		"${MPDir}/rd-vanilla/HmdDeviceOculusSdk.cpp"
 		"${MPDir}/rd-vanilla/HmdDeviceOculusSdk.h"
-		#"${MPDir}/rd-vanilla/HmdDeviceOpenHmd.cpp"
-		#"${MPDir}/rd-vanilla/HmdDeviceOpenHmd.h"
+		##"${MPDir}/rd-vanilla/HmdDeviceOpenHmd.cpp"
+		##"${MPDir}/rd-vanilla/HmdDeviceOpenHmd.h"
 		"${MPDir}/rd-vanilla/IHmdDevice.h"
 		"${MPDir}/rd-vanilla/HmdRendererOculus.cpp"
 		"${MPDir}/rd-vanilla/HmdRendererOculus.h"
-		#"${MPDir}/rd-vanilla/HmdRendererOculusOpenHmd.cpp"
-		#"${MPDir}/rd-vanilla/HmdRendererOculusOpenHmd.h"
+		##"${MPDir}/rd-vanilla/HmdRendererOculusOpenHmd.cpp"
+		##"${MPDir}/rd-vanilla/HmdRendererOculusOpenHmd.h"
 		"${MPDir}/rd-vanilla/HmdRendererOculusSdk.cpp"
 		"${MPDir}/rd-vanilla/HmdRendererOculusSdk.h"
 		"${MPDir}/rd-vanilla/IHmdRenderer.h"
@@ -73,8 +73,9 @@ source_group("renderer" FILES ${MPVanillaRendererFiles})
 		"${MPDir}/rd-vanilla/RenderTool.cpp"
 		"${MPDir}/rd-vanilla/RenderTool.h"
 		)
-#source_group("hmd" FILES ${MPVanillaRendererFiles})
-#set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaHMDFiles})
+source_group("hmd" FILES ${MPVanillaRendererFiles})
+set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaHMDFiles})
+
 
 set(MPVanillaRendererGhoul2Files
 	"${MPDir}/ghoul2/g2_local.h"
@@ -181,8 +182,18 @@ if(NOT WIN32)
 
 	set(SDL2_BUILDING_LIBRARY ON) # don't want main() in Renderer
 	find_package(SDL2 REQUIRED)
+	find_package(LibOVR REQUIRED)
+	find_package(XRandR REQUIRED)
+	find_package(Xinerama REQUIRED)
+	find_package(X11 REQUIRED)
+	find_package(Librt REQUIRED)
 	set(MPVanillaRendererIncludeDirectories ${MPVanillaRendererIncludeDirectories} ${SDL2_INCLUDE_DIR})
 	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${SDL2_LIBRARY})
+	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${LIBOVR_LIBRARY})
+	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${XRANDR_LIBRARY})
+	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${XINERAMA_LIBRARY})
+	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} ${LIBRT_LIBRARY})
+	set(MPVanillaRendererLibraries ${MPVanillaRendererLibraries} -lrt)
 endif(NOT WIN32)
 
 
