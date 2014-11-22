@@ -89,6 +89,13 @@
 #define SLIDER_THUMB_HEIGHT 20.0
 #define	NUM_CROSSHAIRS			9
 
+#ifndef min
+	#define min(x,y) ((x)<(y)?(x):(y))
+#endif
+#ifndef max
+	#define max(x,y) ((x)>(y)?(x):(y))
+#endif
+
 typedef struct scriptDef_s {
   const char *command;
   const char *args[MAX_SCRIPT_ARGS];

@@ -1,7 +1,7 @@
 #include "HmdDeviceMouse.h"
-#include "../client/client.h"
+//#include "../client/client.h"
 
-#include "../qcommon/q_shared.h"
+//#include "../qcommon/q_shared.h"
 
 using namespace std;
 
@@ -62,9 +62,9 @@ bool HmdDeviceMouse::GetDeviceResolution(int& rWidth, int& rHeight)
 
 bool HmdDeviceMouse::GetOrientationRad(float& rPitch, float& rYaw, float& rRoll)
 {
-    rPitch = DEG2RAD(-mPitch);
-    rYaw = DEG2RAD(mYaw);
-    rRoll = DEG2RAD(-mRoll);
+    //rPitch = DEG2RAD(-mPitch);
+    //rYaw = DEG2RAD(mYaw);
+    //rRoll = DEG2RAD(-mRoll);
 
     return true;
 }

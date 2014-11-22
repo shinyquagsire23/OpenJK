@@ -71,6 +71,13 @@
 #define	WAVE_AMPLITUDE	1
 #define	WAVE_FREQUENCY	0.4
 
+#ifndef min
+	#define min(x,y) ((x)<(y)?(x):(y))
+#endif
+#ifndef max
+	#define max(x,y) ((x)>(y)?(x):(y))
+#endif
+
 typedef enum {
 	FOOTSTEP_STONEWALK,
 	FOOTSTEP_STONERUN,

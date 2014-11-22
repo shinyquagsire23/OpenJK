@@ -29,6 +29,14 @@
 #define MIN_ANGLE_ERROR 0.01f
 
 #define MIN_ROCKET_DIST_SQUARED 16384//128*128
+
+#ifndef min
+	#define min(x,y) ((x)<(y)?(x):(y))
+#endif
+#ifndef max
+	#define max(x,y) ((x)>(y)?(x):(y))
+#endif
+
 //
 // NPC.cpp
 //

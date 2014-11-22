@@ -382,7 +382,7 @@ extern PFNGLISPROGRAMARBPROC qglIsProgramARB;
 extern void ( * qglLockArraysEXT)( int, int);
 extern void ( * qglUnlockArraysEXT) ( void );
 
-/*typedef GLboolean ( APIENTRY * PFNglIsRenderbufferPROC) (GLuint renderbuffer);
+typedef GLboolean ( APIENTRY * PFNglIsRenderbufferPROC) (GLuint renderbuffer);
 typedef void ( APIENTRY * PFNglBindRenderbufferPROC) (GLenum target, GLuint renderbuffer);
 typedef void ( APIENTRY * PFNglDeleteRenderbuffersPROC) (GLsizei n, const GLuint *renderbuffers);
 typedef void ( APIENTRY * PFNglGenRenderbuffersPROC) (GLsizei n, GLuint *renderbuffers);
@@ -450,7 +450,7 @@ extern PFNglUniform2fvARBPROC qglUniform2fvARB;
 extern PFNglGetUniformLocationARBPROC qglGetUniformLocationARB;
 
 extern PFNglBindBufferPROC qglBindBuffer;
-extern PFNglBindVertexArrayPROC qglBindVertexArray;*/
+extern PFNglBindVertexArrayPROC qglBindVertexArray;
 
 #define GL_TEXTURE_RECTANGLE_EXT GL_TEXTURE_RECTANGLE_ARB
 
