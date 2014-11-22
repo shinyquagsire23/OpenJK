@@ -254,6 +254,7 @@ void CG_RegisterWeapon( int weaponNum) {
 		cgs.effects.blasterWallImpactEffect		= trap->FX_RegisterEffect( "blaster/wall_impact" );
 		cgs.effects.blasterFleshImpactEffect	= trap->FX_RegisterEffect( "blaster/flesh_impact" );
 		cgs.effects.blasterDroidImpactEffect	= trap->FX_RegisterEffect( "blaster/droid_impact" );
+		cgs.media.turretCrossHairShader			= trap->R_RegisterShaderNoMip( "gfx/2d/panel_crosshair" );
 		break;
 
 	case WP_DISRUPTOR:

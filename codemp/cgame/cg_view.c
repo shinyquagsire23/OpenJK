@@ -701,7 +701,7 @@ static void CG_OffsetThirdPersonView( void )
 			}
 			else*/
 			{
-				cameraFocusAngles[PITCH] += pitchOffset;
+				//cameraFocusAngles[PITCH] += pitchOffset;
 			}
 		}
 	}
@@ -723,13 +723,13 @@ static void CG_OffsetThirdPersonView( void )
 		}
 		else
 		{
-			if (cameraFocusAngles[PITCH] > 80.0)
+			if (cameraFocusAngles[PITCH] > 0.0)
 			{
-				cameraFocusAngles[PITCH] = 80.0;
+				cameraFocusAngles[PITCH] =0.0;
 			}
-			else if (cameraFocusAngles[PITCH] < -80.0)
+			else if (cameraFocusAngles[PITCH] < 0.0)
 			{
-				cameraFocusAngles[PITCH] = -80.0;
+				cameraFocusAngles[PITCH] = 0.0;
 			}
 		}
 
@@ -1539,6 +1539,17 @@ ovrHmd mpHmd_;
 
 void CG_EmplacedView(vec3_t angles);
 static int CG_CalcViewValues( void ) {
+	if(mpHmd_ == NULL)
+	{
+		mpHmd_ = ovrHmd_Create(0);
+ 
+    		if (mpHmd_ == NULL)
+    		{
+            	Com_Printf("No hmd device found. Attempting to make debug device.\n");
+            	mpHmd_ = ovrHmd_CreateDebug(ovrHmd_DK2);
+    		}
+	}	
+
 	qboolean manningTurret = qfalse;
 	playerState_t	*ps;
 
@@ -1547,9 +1558,6 @@ static int CG_CalcViewValues( void ) {
 	// strings for in game rendering
 	// Q_strncpyz( cg.refdef.text[0], "Park Ranger", sizeof(cg.refdef.text[0]) );
 	// Q_strncpyz( cg.refdef.text[1], "19", sizeof(cg.refdef.text[1]) );
-
-	// calculate size of 3D view
-	CG_CalcVrect();
 
 	ps = &cg.predictedPlayerState;
 /*
@@ -1678,7 +1686,7 @@ static int CG_CalcViewValues( void ) {
 	VectorCopy(cg.refdef.viewangles, cg.refdef.viewangles_weapon);
 
         cg.refdef.delta_yaw = cg.refdef.viewangles[YAW];
-	//Com_Printf("[CG] Current yaw: %f\n", cg.refdefViewAngles[YAW]); 
+	//Com_Printf("[CG] Current yaw: %f\n", cg.refdef.viewangles[YAW]); 
     float pitch, yaw, roll;
 
     float quat[4];
@@ -1695,7 +1703,8 @@ static int CG_CalcViewValues( void ) {
     
     cg.refdef.viewangles[ROLL] = roll;
     cg.refdef.viewangles[PITCH] = pitch;
-    cg.refdef.viewangles[YAW] = cg.refdef.viewangles[YAW] + yaw;// + SHORT2ANGLE(ps->delta_angles[YAW]);
+    cg.refdef.viewangles[YAW] += yaw;
+	//Com_Printf("[CG] Current yaw: %f\n", yaw); 
 
 	// position eye relative to origin
 	AnglesToAxis( cg.refdef.viewangles, cg.refdef.viewaxis );
@@ -1703,6 +1712,9 @@ static int CG_CalcViewValues( void ) {
 	if ( cg.hyperspace ) {
 		cg.refdef.rdflags |= RDF_NOWORLDMODEL | RDF_HYPERSPACE;
 	}
+
+	// calculate size of 3D view
+	CG_CalcVrect();
 
 	// field of view
 	return CG_CalcFov();

@@ -4709,7 +4709,8 @@ static void CG_PlaceCrosshairInWorld(vec3_t worldPoint, float crosshairEntDist, 
     //float zProj = atof(rendererinfos);
 
     float xmax = tan(cg.refdef.fov_x * M_PI / 360.0f);
-    //printf("xmax=%.2f fov_x=%.2f dist=%.2f\n", xmax, cg.refdef.fov_x, crosshairEntDist);
+    //Com_Printf("xmax=%.2f fov_x=%.2f dist=%.2f\n", xmax, cg.refdef.fov_x, crosshairEntDist);
+    //Com_Printf("x=%.2f y=%.2f z=%.2f\n", worldPoint[0], worldPoint[1], worldPoint[2]);
     
     refEntity_t ent;
 
@@ -4723,9 +4724,9 @@ static void CG_PlaceCrosshairInWorld(vec3_t worldPoint, float crosshairEntDist, 
     ent.radius = size / 640 * xmax * crosshairEntDist;
     ent.customShader = hShader;
     ent.shaderRGBA[0] = ecolor[0]*255;
-    ent.shaderRGBA[1] = ecolor[1]*255;
-    ent.shaderRGBA[2] = ecolor[2]*255;
-    ent.shaderRGBA[3] = ecolor[3]*255;
+    ent.shaderRGBA[1] = ecolor[0]*255;
+    ent.shaderRGBA[2] = ecolor[0]*255;
+    ent.shaderRGBA[3] = ecolor[0]*255;
 
     trap->R_AddRefEntityToScene(&ent);    
 }
@@ -4783,7 +4784,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid, float crosshair
 	float		f;
 	float		x, y;
 	qboolean	corona = qfalse;
-	vec4_t		ecolor = {0,0,0,0};
+	vec4_t		ecolor = {1.0f,1.0f,1.0f,0.8f};
 	centity_t	*crossEnt = NULL;
 	float		chX, chY;
 
@@ -5102,7 +5103,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid, float crosshair
 		//if ( !Q_stricmp( "misc_panel_turret", crossEnt->currentState.classname ))
 		//{
 			// draws a custom crosshair that is twice as large as normal
-            CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w*2, hShader, ecolor);
+            CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w*2, cgs.media.turretCrossHairShader, ecolor);
 //			cgi_R_DrawStretchPic( x + cg.refdef.x + 320 - w, 
 //				y + cg.refdef.y + 240 - h, 
 //				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );
@@ -5112,7 +5113,7 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid, float crosshair
 	{
 
 
-		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
+		hShader = cgs.media.turretCrossHairShader;//cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 
         CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w, hShader, ecolor);
 		//cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w),
@@ -6037,7 +6038,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 
 				ignore = cg.snap->ps.emplacedIndex;
 
-				VectorCopy(cg.refdef.viewangles, pitchConstraint);
+				VectorCopy(cg.refdef.viewangles_weapon, pitchConstraint);
 
 				if (cg.renderingThirdPerson)
 				{
@@ -6045,7 +6046,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 				}
 				else
 				{
-					VectorCopy(cg.refdef.viewangles, pitchConstraint);
+					VectorCopy(cg.refdef.viewangles_weapon, pitchConstraint);
 				}
 
 				if (pitchConstraint[PITCH] > 40)
@@ -6065,7 +6066,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 				}
 				else
 				{
-					VectorCopy(cg.refdef.viewangles, pitchConstraint);
+					VectorCopy(cg.refdef.viewangles_weapon, pitchConstraint);
 				}
 
 				AngleVectors( pitchConstraint, d_f, d_rt, d_up );
@@ -6081,7 +6082,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 		VectorMA( start, 131072, cg.refdef.viewaxis[0], end );
 	}
 
-	if ( cg_dynamicCrosshair.integer && cg_dynamicCrosshairPrecision.integer )
+	if ( 1 )//cg_dynamicCrosshair.integer && cg_dynamicCrosshairPrecision.integer )
 	{ //then do a trace with ghoul2 models in mind
 		CG_G2Trace( &trace, start, vec3_origin, vec3_origin, end,
 			ignore, CONTENTS_SOLID|CONTENTS_BODY );
@@ -7929,7 +7930,7 @@ static void CG_Draw2D( void ) {
 	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		CG_DrawSpectator();
 		//CG_DrawCrosshair(NULL, 0, g_crosshairEntDist);
-		CG_DrawCrosshairNames();
+		//CG_DrawCrosshairNames();
 		CG_SaberClashFlare();
 	} else {
 		// don't draw any status if dead or the scoreboard is being explicitly shown
@@ -7945,7 +7946,7 @@ static void CG_Draw2D( void ) {
 
 			CG_DrawAmmoWarning();
 
-			CG_DrawCrosshairNames();
+			//CG_DrawCrosshairNames();
 
 			if (cg_drawStatus.integer)
 			{
@@ -8319,10 +8320,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 		separation = 0;
 		break;
 	case STEREO_LEFT:
-		separation = -cg_stereoSeparation.value / 2;
+		separation = 0;//-cg_stereoSeparation.value / 2;
 		break;
 	case STEREO_RIGHT:
-		separation = cg_stereoSeparation.value / 2;
+		separation = 0;//cg_stereoSeparation.value / 2;
 		break;
 	default:
 		separation = 0;
@@ -8346,7 +8347,10 @@ void CG_DrawActive( stereoFrame_t stereoView ) {
 
 	CG_DrawMiscStaticModels();
 
+	cg.refdef.stereoFrame = stereoView;
+
 	// draw 3D view
+	CG_DrawCrosshairNames();
 	trap->R_RenderScene( &cg.refdef );
 
 	// restore original viewpoint if running stereo

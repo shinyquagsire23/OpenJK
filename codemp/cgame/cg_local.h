@@ -1372,6 +1372,8 @@ typedef struct cgMedia_s {
 	// For vehicles only now
 	sfxHandle_t	noAmmoSound;
 
+	qhandle_t turretCrossHairShader;
+
 } cgMedia_t;
 
 
