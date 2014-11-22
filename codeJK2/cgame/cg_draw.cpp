@@ -219,11 +219,11 @@ int cgi_UI_GetMenuInfo(char *menuFile,int *x,int *y);
 CG_DrawHUDRightFrame1
 ================
 */
-static void CG_DrawHUDRightFrame1(int x,int y)
+static void CG_DrawHUDRightFrame1(int x,int y,float scale)
 {
 	cgi_R_SetColor( colorTable[CT_WHITE] );
 	// Inner gray wire frame
-	CG_DrawPic(   x, y, 80, 80, cgs.media.HUDInnerRight );		// 
+	CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDInnerRight );		// 
 }
 
 /*
@@ -231,10 +231,10 @@ static void CG_DrawHUDRightFrame1(int x,int y)
 CG_DrawHUDRightFrame2
 ================
 */
-static void CG_DrawHUDRightFrame2(int x,int y)
+static void CG_DrawHUDRightFrame2(int x,int y, float scale)
 {
 	cgi_R_SetColor( colorTable[CT_WHITE] );
-	CG_DrawPic(   x, y, 80, 80, cgs.media.HUDRightFrame );		// Metal frame
+	CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDRightFrame );		// Metal frame
 }
 
 /*
@@ -242,7 +242,7 @@ static void CG_DrawHUDRightFrame2(int x,int y)
 CG_DrawMessageLit
 ================
 */
-static void CG_DrawMessageLit(centity_t *cent,int x,int y)
+static void CG_DrawMessageLit(centity_t *cent,int x,int y,float scale)
 {
 	cgi_R_SetColor(colorTable[CT_WHITE]);
 
@@ -257,7 +257,7 @@ static void CG_DrawMessageLit(centity_t *cent,int x,int y)
 			}
 
 			cgi_R_SetColor(colorTable[CT_HUD_RED]);
-			CG_DrawPic( x + 33,y + 41, 16,16, cgs.media.messageLitOn);
+			CG_DrawPic( x + 33*scale,y + 41*scale, 16*scale,16*scale, cgs.media.messageLitOn);
 		}
 		else
 		{
@@ -266,7 +266,7 @@ static void CG_DrawMessageLit(centity_t *cent,int x,int y)
 	}
 
 	cgi_R_SetColor(colorTable[CT_WHITE]);
-	CG_DrawPic( x + 33,y + 41, 16,16, cgs.media.messageLitOff);
+	CG_DrawPic( x + 33*scale,y + 41*scale, 16*scale,16*scale, cgs.media.messageLitOff);
 
 }
 
@@ -275,7 +275,7 @@ static void CG_DrawMessageLit(centity_t *cent,int x,int y)
 CG_DrawForcePower
 ================
 */
-static void CG_DrawForcePower(centity_t *cent,int x,int y)
+static void CG_DrawForcePower(centity_t *cent,int x,int y,float scale)
 {
 	int			i;
 	vec4_t		calcColor;
@@ -321,10 +321,10 @@ static void CG_DrawForcePower(centity_t *cent,int x,int y)
 		}
 
 		cgi_R_SetColor( calcColor);
-		CG_DrawPic( x + forceTicPos[i].x, 
-			y + forceTicPos[i].y, 
-			forceTicPos[i].width, 
-			forceTicPos[i].height, 
+		CG_DrawPic( x + forceTicPos[i].x*scale, 
+			y + forceTicPos[i].y*scale, 
+			forceTicPos[i].width*scale, 
+			forceTicPos[i].height*scale, 
 			forceTicPos[i].tic );
 
 		value -= inc;
@@ -336,7 +336,7 @@ static void CG_DrawForcePower(centity_t *cent,int x,int y)
 CG_DrawAmmo
 ================
 */
-static void CG_DrawAmmo(centity_t	*cent,int x,int y)
+static void CG_DrawAmmo(centity_t	*cent,int x,int y,float scale)
 {
 	playerState_t	*ps;
 	int			numColor_i;
@@ -369,14 +369,14 @@ static void CG_DrawAmmo(centity_t	*cent,int x,int y)
 		{
 		case 1://FORCE_LEVEL_1:
 		case 5://FORCE_LEVEL_5://Tavion
-			CG_DrawPic( x, y, 80, 40, cgs.media.HUDSaberStyleFast );
+			CG_DrawPic( x, y, 80*scale, 40*scale, cgs.media.HUDSaberStyleFast );
 			break;
 		case 2://FORCE_LEVEL_2:
-			CG_DrawPic( x, y, 80, 40, cgs.media.HUDSaberStyleMed );
+			CG_DrawPic( x, y, 80*scale, 40*scale, cgs.media.HUDSaberStyleMed );
 			break;
 		case 3://FORCE_LEVEL_3:
 		case 4://FORCE_LEVEL_4://Desann
-			CG_DrawPic( x, y, 80, 40, cgs.media.HUDSaberStyleStrong );
+			CG_DrawPic( x, y, 80*scale, 40*scale, cgs.media.HUDSaberStyleStrong );
 			break;
 		}
 		return;
@@ -428,7 +428,7 @@ static void CG_DrawAmmo(centity_t	*cent,int x,int y)
 	}
 
 	cgi_R_SetColor( colorTable[numColor_i] );	
-	CG_DrawNumField(x + 29, y + 26, 3, value, 6, 12, NUM_FONT_SMALL,qfalse);
+	CG_DrawNumField(x + 29*scale, y + 26*scale, 3, value, 6*scale, 12*scale, NUM_FONT_SMALL,qfalse);
 
 	inc = (float) ammoData[weaponData[cent->currentState.weapon].ammoIndex].max / MAX_TICS;
 	value =ps->ammo[weaponData[cent->currentState.weapon].ammoIndex];
@@ -454,10 +454,10 @@ static void CG_DrawAmmo(centity_t	*cent,int x,int y)
 		}
 
 		cgi_R_SetColor( calcColor);
-		CG_DrawPic( x + ammoTicPos[i].x, 
-			y + ammoTicPos[i].y, 
-			ammoTicPos[i].width, 
-			ammoTicPos[i].height, 
+		CG_DrawPic( x + ammoTicPos[i].x*scale, 
+			y + ammoTicPos[i].y*scale, 
+			ammoTicPos[i].width*scale, 
+			ammoTicPos[i].height*scale, 
 			ammoTicPos[i].tic );
 
 		value -= inc;
@@ -470,11 +470,11 @@ static void CG_DrawAmmo(centity_t	*cent,int x,int y)
 CG_DrawHUDLeftFrame1
 ================
 */
-static void CG_DrawHUDLeftFrame1(int x,int y)
+static void CG_DrawHUDLeftFrame1(int x,int y, float scale)
 {
 	// Inner gray wire frame
 	cgi_R_SetColor( colorTable[CT_WHITE] );
-	CG_DrawPic(   x, y, 80, 80, cgs.media.HUDInnerLeft );			
+	CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDInnerLeft );			
 }
 
 /*
@@ -482,18 +482,18 @@ static void CG_DrawHUDLeftFrame1(int x,int y)
 CG_DrawHUDLeftFrame2
 ================
 */
-static void CG_DrawHUDLeftFrame2(int x,int y)
+static void CG_DrawHUDLeftFrame2(int x,int y, float scale)
 {
 	// Inner gray wire frame
 	cgi_R_SetColor( colorTable[CT_WHITE] );
-	CG_DrawPic(   x, y, 80, 80, cgs.media.HUDLeftFrame );		// Metal frame
+	CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDLeftFrame );		// Metal frame
 }
 /*
 ================
 CG_DrawHealth
 ================
 */
-static void CG_DrawHealth(int x,int y)
+static void CG_DrawHealth(int x,int y, float scale)
 {
 	vec4_t calcColor;
 	float	healthPercent;
@@ -507,17 +507,17 @@ static void CG_DrawHealth(int x,int y)
 	calcColor[1] *= healthPercent;
 	calcColor[2] *= healthPercent;
 	cgi_R_SetColor( calcColor);					
-	CG_DrawPic(   x, y, 80, 80, cgs.media.HUDHealth );
+	CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDHealth );
 
 	// Draw the ticks
 	if (cg.HUDHealthFlag)
 	{
 		cgi_R_SetColor( colorTable[CT_HUD_RED] );					
-		CG_DrawPic(   x, y, 80, 80, cgs.media.HUDHealthTic );
+		CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDHealthTic );
 	}
 
 	cgi_R_SetColor( colorTable[CT_HUD_RED] );	
-	CG_DrawNumField (x + 16, y + 40, 3, ps->stats[STAT_HEALTH], 6, 12, 
+	CG_DrawNumField (x + 16*scale, y + 40*scale, 3, ps->stats[STAT_HEALTH], 6*scale, 12*scale, 
 		NUM_FONT_SMALL,qtrue);
 
 }
@@ -527,7 +527,7 @@ static void CG_DrawHealth(int x,int y)
 CG_DrawArmor
 ================
 */
-static void CG_DrawArmor(int x,int y)
+static void CG_DrawArmor(int x,int y,float scale)
 {
 	vec4_t calcColor;
 	float	armorPercent,hold;
@@ -548,7 +548,7 @@ static void CG_DrawArmor(int x,int y)
 	calcColor[1] *= armorPercent;
 	calcColor[2] *= armorPercent;
 	cgi_R_SetColor( calcColor);					
-	CG_DrawPic(   x, y, 80, 80, cgs.media.HUDArmor1 );			
+	CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDArmor1 );			
 
 	// Inner Armor circular
 	if (armorPercent>0)
@@ -564,7 +564,7 @@ static void CG_DrawArmor(int x,int y)
 	calcColor[1] *= armorPercent;
 	calcColor[2] *= armorPercent;
 	cgi_R_SetColor( calcColor);					
-	CG_DrawPic(   x, y, 80, 80, cgs.media.HUDArmor2 );			//	Inner Armor circular
+	CG_DrawPic(   x, y, 80*scale, 80*scale, cgs.media.HUDArmor2 );			//	Inner Armor circular
 /*
 	if (ps->stats[STAT_ARMOR])	// Is there armor? Draw the HUD Armor TIC
 	{
@@ -601,7 +601,7 @@ static void CG_DrawArmor(int x,int y)
 	}
 */
 	cgi_R_SetColor( colorTable[CT_HUD_GREEN] );	
-	CG_DrawNumField (x + 16 + 14, y + 40 + 14, 3, ps->stats[STAT_ARMOR], 6, 12, 
+	CG_DrawNumField (x + 16*scale + 14*scale, y + 40*scale + 14*scale, 3, ps->stats[STAT_ARMOR], 6*scale, 12*scale, 
 		NUM_FONT_SMALL,qfalse);
 
 }
@@ -746,8 +746,10 @@ static void CG_DrawHUD( centity_t *cent )
 	
 	if (cgi_UI_GetMenuInfo("lefthud",&x,&y))
 	{
+		x = 80;
+		y = 320;
 		// Draw all the HUD elements --eez
-		cgi_UI_Menu_Paint( cgi_UI_GetMenuByName( "lefthud" ), qtrue );
+		//cgi_UI_Menu_Paint( cgi_UI_GetMenuByName( "lefthud" ), qtrue );
 
 		// Draw armor & health values
 		if ( cg_draw2D.integer == 2 ) 
@@ -756,16 +758,19 @@ static void CG_DrawHUD( centity_t *cent )
 			CG_DrawSmallStringColor(x+5, y - 40,va("Health:%d",cg.snap->ps.stats[STAT_HEALTH]), colorTable[CT_HUD_GREEN] );
 		}
 
-		CG_DrawHUDLeftFrame1(x,y);
-		CG_DrawArmor(x,y);
-		CG_DrawHealth(x,y);
-		CG_DrawHUDLeftFrame2(x,y);
+		CG_DrawHUDLeftFrame1(x,y,1.5f);
+		CG_DrawArmor(x,y,1.5f);
+		CG_DrawHealth(x,y,1.5f);
+		CG_DrawHUDLeftFrame2(x,y,1.5f);
 	}
 
 	if (cgi_UI_GetMenuInfo("righthud",&x,&y))
 	{
+		x = 480;
+		y = 320;
+
 		// Draw all the HUD elements --eez
-		cgi_UI_Menu_Paint( cgi_UI_GetMenuByName( "righthud" ), qtrue );
+		//cgi_UI_Menu_Paint( cgi_UI_GetMenuByName( "righthud" ), qtrue );
 
 		// Draw armor & health values
 		if ( cg_draw2D.integer == 2 ) 
@@ -785,11 +790,11 @@ static void CG_DrawHUD( centity_t *cent )
 			CG_DrawSmallStringColor(x, y - 40,va("Force:%d",cent->gent->client->ps.forcePower), colorTable[CT_HUD_GREEN] );
 		}
 
-		CG_DrawHUDRightFrame1(x,y);
-		CG_DrawForcePower(cent,x,y);
-		CG_DrawAmmo(cent,x,y);
-		CG_DrawMessageLit(cent,x,y);
-		CG_DrawHUDRightFrame2(x,y);
+		CG_DrawHUDRightFrame1(x,y,1.5f);
+		CG_DrawForcePower(cent,x,y,1.5f);
+		CG_DrawAmmo(cent,x,y,1.5f);
+		CG_DrawMessageLit(cent,x,y,1.5f);
+		CG_DrawHUDRightFrame2(x,y,1.5f);
 	}
 }
 
@@ -823,9 +828,9 @@ void CG_DrawDataPadHUD( centity_t *cent )
 	x = 34;
 	y = 286;
 
-	CG_DrawHUDLeftFrame1(x,y);
-	CG_DrawArmor(x,y);
-	CG_DrawHealth(x,y);
+	CG_DrawHUDLeftFrame1(x,y,1);
+	CG_DrawArmor(x,y,1);
+	CG_DrawHealth(x,y,1);
 
 	x = 526;
 
@@ -853,10 +858,10 @@ void CG_DrawDataPadHUD( centity_t *cent )
 //		CG_ClearDataPadCvars();
 	}
 
-	CG_DrawHUDRightFrame1(x,y);
-	CG_DrawForcePower(cent,x,y);
-	CG_DrawAmmo(cent,x,y);
-	CG_DrawMessageLit(cent,x,y);
+	CG_DrawHUDRightFrame1(x,y,1);
+	CG_DrawForcePower(cent,x,y,1);
+	CG_DrawAmmo(cent,x,y,1);
+	CG_DrawMessageLit(cent,x,y,1);
 
 	cgi_R_SetColor( colorTable[CT_WHITE]);
 	CG_DrawPic( 0, 0, 640, 480, cgs.media.dataPadFrame );

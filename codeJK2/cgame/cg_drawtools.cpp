@@ -374,7 +374,7 @@ void CG_DrawNumField (int x, int y, int width, int value,int charWidth,int charH
 	switch(style)
 	{
 	case NUM_FONT_SMALL:
-		xWidth = charWidth;
+		xWidth = charWidth+2; //HMD: Spacing for readability
 		break;
 	case NUM_FONT_CHUNKY:
 		xWidth = (charWidth/1.2f) + 2;
