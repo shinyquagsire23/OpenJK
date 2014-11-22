@@ -1,5 +1,9 @@
 // tr_main.c -- main control flow for each frame
 #include "tr_local.h"
+
+#include "ClientHmd.h"
+#include "IHmdRenderer.h"
+
 #include "ghoul2/g2_local.h"
 // Yeah, this might be kind of bad, but no linux version is planned so far :-) - AReis
 // Gee- thanks guys - jdrews, the linux porter...
@@ -359,6 +363,19 @@ void R_RotateForViewer (void)
 	// transform by the camera placement
 	VectorCopy( tr.viewParms.ori.origin, origin );
 
+    IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+    if (pHmdRenderer)
+    {             
+        // check if the renderer handles the view matrix creation
+        bool matrixCreated = pHmdRenderer->GetCustomViewMatrix(tr.ori.modelMatrix, origin[0], origin[1], origin[2], tr.viewParms.bodyYaw);
+        //ri.Printf(PRINT_ALL, "[RND] Current yaw: %f\n", tr.viewParms.bodyYaw); 
+        if (matrixCreated)
+        {            
+            tr.viewParms.world = tr.ori;
+            return;
+        }        
+    }   
+
 	viewerMatrix[0] = tr.viewParms.ori.axis[0][0];
 	viewerMatrix[4] = tr.viewParms.ori.axis[0][1];
 	viewerMatrix[8] = tr.viewParms.ori.axis[0][2];
@@ -477,6 +494,17 @@ void R_SetupProjection( void ) {
 
 	// dynamically compute far clip plane distance
 	SetFarClip();
+
+    IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+    if (pHmdRenderer)
+    {
+        // check if the renderer handles the projection matrix creation
+        bool matrixCreated = pHmdRenderer->GetCustomProjectionMatrix(tr.viewParms.projectionMatrix, r_znear->value, tr.viewParms.zFar, tr.viewParms.fovX);
+        if (matrixCreated)
+        {
+            return;
+        }
+    }
 
 	//
 	// set up projection matrix
@@ -1253,7 +1281,7 @@ Ghoul2 Insert Start
 					{
 						if (!(ent->e.renderfx & RF_SHADOW_ONLY))
 						{
-							break;
+							//break;
 						}
 					}
 

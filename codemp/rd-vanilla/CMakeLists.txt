@@ -49,6 +49,33 @@ set(MPVanillaRendererFiles
 	)
 source_group("renderer" FILES ${MPVanillaRendererFiles})
 
+	# HMD files
+	set(MPVanillaHMDFiles
+		"${MPDir}/rd-vanilla/FactoryHmdDevice.cpp"
+		"${MPDir}/rd-vanilla/FactoryHmdDevice.h"
+		"${MPDir}/rd-vanilla/HmdDeviceMouse.cpp"
+		"${MPDir}/rd-vanilla/HmdDeviceMouse.h"
+		"${MPDir}/rd-vanilla/ClientHmd.cpp"
+		"${MPDir}/rd-vanilla/ClientHmd.h"
+		"${MPDir}/rd-vanilla/HmdDeviceOculusSdk.cpp"
+		"${MPDir}/rd-vanilla/HmdDeviceOculusSdk.h"
+		#"${MPDir}/rd-vanilla/HmdDeviceOpenHmd.cpp"
+		#"${MPDir}/rd-vanilla/HmdDeviceOpenHmd.h"
+		"${MPDir}/rd-vanilla/IHmdDevice.h"
+		"${MPDir}/rd-vanilla/HmdRendererOculus.cpp"
+		"${MPDir}/rd-vanilla/HmdRendererOculus.h"
+		#"${MPDir}/rd-vanilla/HmdRendererOculusOpenHmd.cpp"
+		#"${MPDir}/rd-vanilla/HmdRendererOculusOpenHmd.h"
+		"${MPDir}/rd-vanilla/HmdRendererOculusSdk.cpp"
+		"${MPDir}/rd-vanilla/HmdRendererOculusSdk.h"
+		"${MPDir}/rd-vanilla/IHmdRenderer.h"
+		"${MPDir}/rd-vanilla/PlatformInfo.h"
+		"${MPDir}/rd-vanilla/RenderTool.cpp"
+		"${MPDir}/rd-vanilla/RenderTool.h"
+		)
+#source_group("hmd" FILES ${MPVanillaRendererFiles})
+#set(MPVanillaRendererFiles ${MPVanillaRendererFiles} ${MPVanillaHMDFiles})
+
 set(MPVanillaRendererGhoul2Files
 	"${MPDir}/ghoul2/g2_local.h"
 	"${MPDir}/ghoul2/ghoul2_shared.h"

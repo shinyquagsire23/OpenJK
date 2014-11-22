@@ -513,6 +513,9 @@ typedef struct trRefdef_s {
 
 	int			numDrawSurfs;
 	struct drawSurf_s	*drawSurfs;
+
+	stereoFrame_t stereoFrame;
+	float       delta_yaw;
 } trRefdef_t;
 
 
@@ -552,6 +555,7 @@ typedef struct viewParms_s {
 	cplane_t	frustum[4];
 	vec3_t		visBounds[2];
 	float		zFar;
+	float       bodyYaw;
 } viewParms_t;
 
 
