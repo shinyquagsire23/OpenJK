@@ -945,7 +945,7 @@ static void GLimp_InitExtensions( void )
 		}
 	}
 
-/*//HMD EXTENSIONS
+//HMD EXTENSIONS
      IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
      if (pHmdRenderer != NULL)
 	{
@@ -999,7 +999,7 @@ static void GLimp_InitExtensions( void )
             platformInfo.pDisplay = sysInfo.info.x11.display;
             platformInfo.WindowId = sysInfo.info.x11.window;
         }
-#endif* /
+#endif*/
         bool worked = pHmdRenderer->Init(glConfig.vidWidth/2, glConfig.vidHeight, platformInfo);
         if (worked)
         {  
@@ -1011,7 +1011,7 @@ static void GLimp_InitExtensions( void )
             pHmdRenderer = NULL;
             ClientHmd::Get()->SetRenderer(NULL);
         }
-	}*/
+	}
 
 	// Figure out which texture rectangle extension to use.
 	bool bTexRectSupported = false;

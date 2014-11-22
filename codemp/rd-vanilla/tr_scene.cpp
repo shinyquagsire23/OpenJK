@@ -9,6 +9,9 @@
 #endif
 #include "qcommon/disablewarnings.h"
 
+#include "IHmdRenderer.h"
+#include "ClientHmd.h"
+
 static	int			r_firstSceneDrawSurf;
 
 static	int			r_numdlights;
@@ -403,6 +406,9 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.height = fd->height;
 	tr.refdef.fov_x = fd->fov_x;
 	tr.refdef.fov_y = fd->fov_y;
+	tr.refdef.stereoFrame = fd->stereoFrame;
+     tr.refdef.delta_yaw = fd->delta_yaw;
+
 
 	VectorCopy( fd->vieworg, tr.refdef.vieworg );
 	VectorCopy( fd->viewaxis[0], tr.refdef.viewaxis[0] );
@@ -524,6 +530,18 @@ void RE_RenderScene( const refdef_t *fd ) {
 	VectorCopy( fd->viewaxis[2], parms.ori.axis[2] );
 
 	VectorCopy( fd->vieworg, parms.pvsOrigin );
+
+	IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
+    if (pHmdRenderer)
+    {
+        bool leftEye = tr.refdef.stereoFrame == STEREO_LEFT;
+        pHmdRenderer->BeginRenderingForEye(leftEye);
+        
+        // calculate body yaw
+        parms.bodyYaw += ClientHmd::Get()->GetYawDiff() + tr.refdef.delta_yaw;    
+
+        //tr.refdef.stereoFrame = (leftEye ? STEREO_RIGHT : STEREO_LEFT); 
+    }      
 
 	R_RenderView( &parms );
 

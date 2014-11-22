@@ -2,6 +2,10 @@
 //
 // cg_view.c -- setup all the parameters (position, angle, etc)
 // for a 3D rendering
+
+#include <OVR_CAPI.h>
+#include <OVR_CAPI_GL.h>
+
 #include "cg_local.h"
 #include "game/bg_saga.h"
 
@@ -1482,6 +1486,57 @@ CG_CalcViewValues
 Sets cg.refdef view values
 ===============
 */
+
+void ConvertQuatToEuler_(const float* quat, float * rYaw, float * rPitch, float * rRoll)
+{
+    //https://svn.code.sf.net/p/irrlicht/code/trunk/include/quaternion.h
+    // modified to get yaw before pitch
+
+    float W = quat[3];
+    float X = quat[1];
+    float Y = quat[0];
+    float Z = quat[2];
+
+    float sqw = W*W;
+    float sqx = X*X;
+    float sqy = Y*Y;
+    float sqz = Z*Z;
+
+    float test = 2.0f * (Y*W - X*Z);
+
+    if (test > (1.0f - 0.000001f))
+    {
+        // heading = rotation about z-axis
+        *rRoll = (-2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        *rYaw = 0;
+        // attitude = rotation about y-axis
+        *rPitch = M_PI/2.0f;
+    }
+    else if (test < (-1.0f + 0.000001f))
+    {
+        // heading = rotation about z-axis
+        *rRoll = (2.0f*atan2(X, W));
+        // bank = rotation about x-axis
+        *rYaw = 0;
+        // attitude = rotation about y-axis
+        *rPitch = M_PI/-2.0f;
+    }
+    else
+    {
+        // heading = rotation about z-axis
+        *rRoll = atan2(2.0f * (X*Y +Z*W),(sqx - sqy - sqz + sqw));
+        // bank = rotation about x-axis
+        *rYaw = atan2(2.0f * (Y*Z +X*W),(-sqx - sqy + sqz + sqw));
+        // attitude = rotation about y-axis
+        test = max(test, -1.0f);
+        test = min(test, 1.0f);
+        *rPitch = asin(test);
+    }
+}
+
+ovrHmd mpHmd_;
+
 void CG_EmplacedView(vec3_t angles);
 static int CG_CalcViewValues( void ) {
 	qboolean manningTurret = qfalse;
@@ -1512,12 +1567,12 @@ static int CG_CalcViewValues( void ) {
 	}
 */
 	// intermission view
-	if ( ps->pm_type == PM_INTERMISSION ) {
+	/*if ( ps->pm_type == PM_INTERMISSION ) {
 		VectorCopy( ps->origin, cg.refdef.vieworg );
 		VectorCopy( ps->viewangles, cg.refdef.viewangles );
 		AnglesToAxis( cg.refdef.viewangles, cg.refdef.viewaxis );
 		return CG_CalcFov();
-	}
+	}*/
 
 	cg.bobcycle = ( ps->bobCycle & 128 ) >> 7;
 	cg.bobfracsin = fabs( sin( ( ps->bobCycle & 127 ) / 127.0 * M_PI ) );
@@ -1619,6 +1674,28 @@ static int CG_CalcViewValues( void ) {
 			CG_OffsetFirstPersonView();
 		}
 	}
+
+	VectorCopy(cg.refdef.viewangles, cg.refdef.viewangles_weapon);
+
+        cg.refdef.delta_yaw = cg.refdef.viewangles[YAW];
+	//Com_Printf("[CG] Current yaw: %f\n", cg.refdefViewAngles[YAW]); 
+    float pitch, yaw, roll;
+
+    float quat[4];
+    ovrPosef pose = ovrHmd_GetTrackingState(mpHmd_, ovr_GetTimeInSeconds()).HeadPose.ThePose;
+    quat[0] = pose.Orientation.x;
+    quat[1] = pose.Orientation.y;
+    quat[2] = pose.Orientation.z;
+    quat[3] = pose.Orientation.w;
+    ConvertQuatToEuler_(&quat[0], &yaw, &pitch, &roll);
+
+    pitch = RAD2DEG(-pitch);
+    yaw = RAD2DEG(yaw);
+    roll = RAD2DEG(-roll);
+    
+    cg.refdef.viewangles[ROLL] = roll;
+    cg.refdef.viewangles[PITCH] = pitch;
+    cg.refdef.viewangles[YAW] = cg.refdef.viewangles[YAW] + yaw;// + SHORT2ANGLE(ps->delta_angles[YAW]);
 
 	// position eye relative to origin
 	AnglesToAxis( cg.refdef.viewangles, cg.refdef.viewaxis );
@@ -2538,14 +2615,14 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	CG_PredictPlayerState();
 
 	// decide on third person view
-	cg.renderingThirdPerson = cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0);
+	cg.renderingThirdPerson = (cg_thirdPerson.integer || (cg.snap->ps.stats[STAT_HEALTH] <= 0) ? qtrue : qfalse);
 
 	if (cg.snap->ps.stats[STAT_HEALTH] > 0)
 	{
 		if (cg.predictedPlayerState.weapon == WP_EMPLACED_GUN && cg.predictedPlayerState.emplacedIndex /*&&
 			cg_entities[cg.predictedPlayerState.emplacedIndex].currentState.weapon == WP_NONE*/)
 		{ //force third person for e-web and emplaced use
-			cg.renderingThirdPerson = 1;
+			cg.renderingThirdPerson = qtrue;
 		}
 		else if (cg.predictedPlayerState.weapon == WP_SABER || cg.predictedPlayerState.weapon == WP_MELEE ||
 			BG_InGrappleMove(cg.predictedPlayerState.torsoAnim) || BG_InGrappleMove(cg.predictedPlayerState.legsAnim) ||
@@ -2555,28 +2632,28 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 #if 0
 			if (cg_fpls.integer && cg.predictedPlayerState.weapon == WP_SABER)
 			{ //force to first person for fpls
-				cg.renderingThirdPerson = 0;
+				cg.renderingThirdPerson = qfalse;
 			}
 			else
 #endif
 			{
-				cg.renderingThirdPerson = 1;
+				cg.renderingThirdPerson = qtrue;
 			}
 		}
 		else if (cg.snap->ps.zoomMode)
 		{ //always force first person when zoomed
-			cg.renderingThirdPerson = 0;
+			cg.renderingThirdPerson = qfalse;
 		}
 	}
 
 	if (cg.predictedPlayerState.pm_type == PM_SPECTATOR)
 	{ //always first person for spec
-		cg.renderingThirdPerson = 0;
+		cg.renderingThirdPerson = qfalse;
 	}
 
 	if (cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR)
 	{
-		cg.renderingThirdPerson = 0;
+		cg.renderingThirdPerson = qfalse;
 	}
 
 	// build cg.refdef

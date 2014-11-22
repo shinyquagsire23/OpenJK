@@ -4700,6 +4700,37 @@ CG_DrawCrosshair
 =================
 */
 
+static void CG_PlaceCrosshairInWorld(vec3_t worldPoint, float crosshairEntDist, float size, qhandle_t hShader, vec4_t ecolor)
+{
+    // [LAva] got the basics from ioquake / ioq3
+    
+    //char rendererinfos[128];
+    //trap_Cvar_VariableStringBuffer("r_zProj", rendererinfos, sizeof(rendererinfos));
+    //float zProj = atof(rendererinfos);
+
+    float xmax = tan(cg.refdef.fov_x * M_PI / 360.0f);
+    //printf("xmax=%.2f fov_x=%.2f dist=%.2f\n", xmax, cg.refdef.fov_x, crosshairEntDist);
+    
+    refEntity_t ent;
+
+    memset(&ent, 0, sizeof(ent));
+    ent.reType = RT_SPRITE;
+    ent.renderfx = RF_DEPTHHACK;
+
+    VectorCopy(worldPoint, ent.origin);
+
+    // scale the crosshair so it appears the same size for all distances
+    ent.radius = size / 640 * xmax * crosshairEntDist;
+    ent.customShader = hShader;
+    ent.shaderRGBA[0] = ecolor[0]*255;
+    ent.shaderRGBA[1] = ecolor[1]*255;
+    ent.shaderRGBA[2] = ecolor[2]*255;
+    ent.shaderRGBA[3] = ecolor[3]*255;
+
+    trap->R_AddRefEntityToScene(&ent);    
+}
+
+
 float cg_crosshairPrevPosX = 0;
 float cg_crosshairPrevPosY = 0;
 #define CRAZY_CROSSHAIR_MAX_ERROR_X	(100.0f*640.0f/480.0f)
@@ -4746,7 +4777,7 @@ void CG_LerpCrosshairPos( float *x, float *y )
 }
 
 vec3_t cg_crosshairPos={0,0,0};
-static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
+static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid, float crosshairEntDist) {
 	float		w, h;
 	qhandle_t	hShader = 0;
 	float		f;
@@ -5050,30 +5081,47 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		h *= ( 1 + f );
 	}
 
-	if ( worldPoint && VectorLength( worldPoint ) )
-	{
-		if ( !CG_WorldCoordToScreenCoordFloat( worldPoint, &x, &y ) )
-		{//off screen, don't draw it
-			return;
-		}
-		//CG_LerpCrosshairPos( &x, &y );
-		x -= 320;
-		y -= 240;
-	}
-	else
-	{
-		x = cg_crosshairX.integer;
-		y = cg_crosshairY.integer;
-	}
+	//	if ( worldPoint && VectorLength( worldPoint ) )
+//	{
+//		if ( !CG_WorldCoordToScreenCoordFloat( worldPoint, &x, &y ) )
+//		{//off screen, don't draw it
+//			return;
+//		}
+//		x -= 320;//????
+//		y -= 240;//????
+//	}
+//	else
+//	{
+//		x = cg_crosshairX.integer;
+//		y = cg_crosshairY.integer;
+//	}
 
-	if ( !hShader )
+	if ( crossEnt && crossEnt->currentState.number < MAX_CLIENTS )
 	{
 		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
+		//if ( !Q_stricmp( "misc_panel_turret", crossEnt->currentState.classname ))
+		//{
+			// draws a custom crosshair that is twice as large as normal
+            CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w*2, hShader, ecolor);
+//			cgi_R_DrawStretchPic( x + cg.refdef.x + 320 - w, 
+//				y + cg.refdef.y + 240 - h, 
+//				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );
+		//}
 	}
+	else 
+	{
 
-	chX = x + cg.refdef.x + 0.5 * (640 - w);
+
+		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
+
+        CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w, hShader, ecolor);
+		//cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w),
+		//	y + cg.refdef.y + 0.5 * (480 - h),
+		//	w, h, 0, 0, 1, 1, hShader );
+			chX = x + cg.refdef.x + 0.5 * (640 - w);
 	chY = y + cg.refdef.y + 0.5 * (480 - h);
 	trap->R_DrawStretchPic( chX, chY, w, h, 0, 0, 1, 1, hShader );
+	}
 
 	//draw a health bar directly under the crosshair if we're looking at something
 	//that takes damage
@@ -5126,9 +5174,11 @@ static void CG_DrawCrosshair( vec3_t worldPoint, int chEntValid ) {
 		w *= 2.0f;
 		h *= 2.0f;
 
-		trap->R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w),
-			y + cg.refdef.y + 0.5 * (480 - h),
-			w, h, 0, 0, 1, 1, cgs.media.forceCoronaShader );
+        CG_PlaceCrosshairInWorld(worldPoint, crosshairEntDist, w, cgs.media.forceCoronaShader, ecolor);        
+//		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5f * ( 640 - w ), y + cg.refdef.y + 0.5f * ( 480 - h ), 
+//								w, h, 
+//								0, 0, 1, 1, 
+//								cgs.media.forceCoronaShader ); 
 	}
 
 	trap->R_SetColor( NULL );
@@ -5927,7 +5977,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 
 	ignore = cg.predictedPlayerState.clientNum;
 
-	if ( cg_dynamicCrosshair.integer )
+	if ( 1 ) //cg_dynamicCrosshair.integer )
 	{
 		vec3_t d_f, d_rt, d_up;
 		/*
@@ -6070,6 +6120,9 @@ static void CG_ScanForCrosshairEntity( void ) {
 			ignore, CONTENTS_SOLID|CONTENTS_BODY );
 	}
 
+	float g_crosshairEntNum = trace.entityNum;
+	float g_crosshairEntDist = 4096*trace.fraction;
+
 	if (trace.entityNum < MAX_CLIENTS)
 	{
 		if (CG_IsMindTricked(cg_entities[trace.entityNum].currentState.trickedentindex,
@@ -6084,7 +6137,7 @@ static void CG_ScanForCrosshairEntity( void ) {
 				cg.crosshairClientTime = 0;
 			}
 
-			CG_DrawCrosshair(trace.endpos, 0);
+			CG_DrawCrosshair(trace.endpos, 0, g_crosshairEntDist);
 
 			return; //this entity is mind-tricking the current client, so don't render it
 		}
@@ -6107,11 +6160,11 @@ static void CG_ScanForCrosshairEntity( void ) {
 				cg.crosshairVehTime = cg.time;
 			}
 
-			CG_DrawCrosshair(trace.endpos, 1);
+			CG_DrawCrosshair(trace.endpos, 1, g_crosshairEntDist);
 		}
 		else
 		{
-			CG_DrawCrosshair(trace.endpos, 0);
+			CG_DrawCrosshair(trace.endpos, 0, g_crosshairEntDist);
 		}
 	}
 
@@ -7875,7 +7928,7 @@ static void CG_Draw2D( void ) {
 */
 	if ( cg.snap->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
 		CG_DrawSpectator();
-		CG_DrawCrosshair(NULL, 0);
+		//CG_DrawCrosshair(NULL, 0, g_crosshairEntDist);
 		CG_DrawCrosshairNames();
 		CG_SaberClashFlare();
 	} else {
