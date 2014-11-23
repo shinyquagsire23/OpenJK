@@ -57,6 +57,8 @@ private:
     int mWindowHeight;
     int mRenderWidth;
     int mRenderHeight;
+    int mRenderWidth_orig;
+    int mRenderHeight_orig;
     ovrGLTexture eyeTextures[2];
     ovrPosef eyePoses[2];
     ovrVector3f eyeOffsets[2];
@@ -71,6 +73,9 @@ private:
     float lastBodyYaw = 0;
 	float bodyTotalDiff = 0;
 	float bodyModDiff = 0;
+	float scale = 1.25f;
+	float bufferScale = 2;
+	int lastFps = 150;
 
     int mCurrentFbo;
 

@@ -3016,7 +3016,10 @@ static float CG_DrawFPS( float y ) {
 	s = va( "%ifps", fps );
 	w = CG_DrawStrlen( s ) * BIGCHAR_WIDTH;
 
-	CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F);
+	trap->Cvar_Set("cg_currentFps", va( "%i", fps ) );
+
+	if(cg_drawFPS.integer)
+		CG_DrawBigString( 635 - w + xOffset, y + 2, s, 1.0F);
 
 	return y + BIGCHAR_HEIGHT + 4;
 }
@@ -3925,9 +3928,10 @@ static void CG_DrawUpperRight( void ) {
 		y = CG_DrawSnapshot( y );
 	}
 
-	if ( cg_drawFPS.integer ) {
+	//HMD: Force method to be called so we can find the FPS for dynamic resolution.
+	//if ( cg_drawFPS.integer ) {
 		y = CG_DrawFPS( y );
-	}
+	//}
 	if ( cg_drawTimer.integer ) {
 		y = CG_DrawTimer( y );
 	}

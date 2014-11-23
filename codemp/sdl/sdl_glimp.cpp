@@ -95,6 +95,7 @@ void GLimp_EndFrame( void )
     IHmdRenderer* pHmdRenderer = ClientHmd::Get()->GetRenderer();
     if (pHmdRenderer != NULL)
     {
+	   pHmdRenderer->GetRenderResolution(glConfig.vidWidth, glConfig.vidHeight);
         pHmdRenderer->EndFrame();
         //doSwap = !pHmdRenderer->HandlesSwap();
     }

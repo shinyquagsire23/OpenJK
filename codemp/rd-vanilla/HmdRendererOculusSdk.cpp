@@ -58,13 +58,14 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     mWindowWidth = mpHmd->Resolution.w;//windowWidth;
     mWindowHeight = mpHmd->Resolution.h;//windowHeight;
 
-    // use higher render resolution for a better result
-    mRenderWidth = mWindowWidth/2;
-    mRenderHeight = mWindowHeight;
+    mRenderWidth = (mWindowWidth/2)*scale;
+    mRenderHeight = (mWindowHeight)*scale;
+    mRenderWidth_orig = mRenderWidth;
+    mRenderHeight_orig = mRenderHeight;
 
     for (int i=0; i<FBO_COUNT; i++)
     {
-        bool worked = RenderTool::CreateFrameBuffer(mFboInfos[i], mRenderWidth, mRenderHeight);
+        bool worked = RenderTool::CreateFrameBuffer(mFboInfos[i], mRenderWidth*bufferScale, mRenderHeight*bufferScale);
         if (!worked)
         {
             return false;
@@ -74,13 +75,12 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     ovrRecti eyeRenderViewport[2];
     eyeRenderViewport[0].Pos.x = 0;
     eyeRenderViewport[0].Pos.y = 0;
-    eyeRenderViewport[0].Size.w = mpHmd->Resolution.w/2;
-    eyeRenderViewport[0].Size.h = mpHmd->Resolution.h;
-
+    eyeRenderViewport[0].Size.w = (mpHmd->Resolution.w/2)/(bufferScale/scale);
+    eyeRenderViewport[0].Size.h = mpHmd->Resolution.h/(bufferScale/scale);
     eyeRenderViewport[1].Pos.x = 0;
     eyeRenderViewport[1].Pos.y = 0;
-    eyeRenderViewport[1].Size.w = mpHmd->Resolution.w/2;
-    eyeRenderViewport[1].Size.h = mpHmd->Resolution.h;
+    eyeRenderViewport[1].Size.w = (mpHmd->Resolution.w/2)/(bufferScale/scale);
+    eyeRenderViewport[1].Size.h = mpHmd->Resolution.h/(bufferScale/scale);
 
     // Start the sensor which provides the Rift’s pose and motion.
     ovrHmd_ConfigureTracking(mpHmd, ovrTrackingCap_Orientation |
@@ -91,14 +91,14 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     mpTs = ovrHmd_GetTrackingState(mpHmd, ovr_GetTimeInSeconds());
 
     eyeTextures[0].OGL.Header.API = ovrRenderAPI_OpenGL;
-    eyeTextures[0].OGL.Header.TextureSize.w = mpHmd->Resolution.w/2;
-    eyeTextures[0].OGL.Header.TextureSize.h = mpHmd->Resolution.h;
+    eyeTextures[0].OGL.Header.TextureSize.w = mRenderWidth;
+    eyeTextures[0].OGL.Header.TextureSize.h = mRenderHeight;
     eyeTextures[0].OGL.Header.RenderViewport = eyeRenderViewport[0];
     eyeTextures[0].OGL.TexId = mFboInfos[0].ColorBuffer;
  
     eyeTextures[1].OGL.Header.API = ovrRenderAPI_OpenGL;
-    eyeTextures[1].OGL.Header.TextureSize.w = mpHmd->Resolution.w/2;
-    eyeTextures[1].OGL.Header.TextureSize.h = mpHmd->Resolution.h;
+    eyeTextures[1].OGL.Header.TextureSize.w = mRenderWidth;
+    eyeTextures[1].OGL.Header.TextureSize.h = mRenderHeight;
     eyeTextures[1].OGL.Header.RenderViewport = eyeRenderViewport[1];
     eyeTextures[1].OGL.TexId = mFboInfos[1].ColorBuffer;
 
@@ -114,7 +114,7 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     //glcfg.OGL.Disp = glXGetCurrentDisplay();
     //glcfg.OGL.Win = glXGetCurrentDrawable();
 
-    hmd_caps = ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction;
+    hmd_caps = 0;//ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction;
     ovrHmd_SetEnabledCaps(mpHmd, hmd_caps);
 
     distort_caps = ovrDistortionCap_Chromatic;// | ovrDistortionCap_TimeWarp  | ovrDistortionCap_Overdrive;  | ovrDistortionCap_Vignette;
@@ -181,6 +181,72 @@ void HmdRendererOculusSdk::BeginRenderingForEye(int leftEye)
         return;
     }
 
+    // use higher render resolution for a better result
+    /*float current_fps = ri->Cvar_Get( "cg_currentFps", "0", 0 )->integer;
+    int current_fps_int = ri->Cvar_Get( "cg_currentFps", "0", 0 )->integer;
+    int fps_diff = lastFps - current_fps_int;
+    if(current_fps_int != lastFps)
+    {
+    if(current_fps == 0)
+    {
+		//If we're in a menu, upscale away!
+		current_fps = 75*2;
+    }
+    else if(fps_diff < -3)
+    {
+		scale -= 0.1;
+    }
+    else if(fps_diff > 3)
+    {
+          scale += 0.1;
+    }
+    else if(current_fps < 60)
+    {
+          scale -= 0.1;
+    }
+    else if(current_fps > 80)
+    {
+          scale += 0.1;
+    }
+    else if(current_fps > 130)
+    {
+		current_fps = 130;
+    }
+    //scale = (current_fps/75);
+
+    if(scale < 0.25)
+    {
+        scale = 0.25f;
+    }
+    else if(scale > bufferScale)
+    		scale = bufferScale;
+
+    Com_Printf("%f scale, %i FPS, %i frames\n", scale, current_fps_int, fps_diff);
+
+    mRenderWidth = (mWindowWidth/2)*scale;
+    mRenderHeight = (mWindowHeight)*scale;
+
+    ovrRecti eyeRenderViewport[2];
+    eyeRenderViewport[0].Pos.x = 0;
+    eyeRenderViewport[0].Pos.y = 0;
+    eyeRenderViewport[0].Size.w = (mpHmd->Resolution.w/2)/(bufferScale/scale);
+    eyeRenderViewport[0].Size.h = mpHmd->Resolution.h/(bufferScale/scale);
+    eyeRenderViewport[1].Pos.x = 0;
+    eyeRenderViewport[1].Pos.y = 0;
+    eyeRenderViewport[1].Size.w = (mpHmd->Resolution.w/2)/(bufferScale/scale);
+    eyeRenderViewport[1].Size.h = mpHmd->Resolution.h/(bufferScale/scale);
+
+    eyeTextures[0].OGL.Header.TextureSize.w = mRenderWidth;
+    eyeTextures[0].OGL.Header.TextureSize.h = mRenderHeight;
+    eyeTextures[0].OGL.Header.RenderViewport = eyeRenderViewport[0];
+ 
+    eyeTextures[1].OGL.Header.API = ovrRenderAPI_OpenGL;
+    eyeTextures[1].OGL.Header.TextureSize.w = mRenderWidth;
+    eyeTextures[1].OGL.Header.TextureSize.h = mRenderHeight;
+    eyeTextures[1].OGL.Header.RenderViewport = eyeRenderViewport[1];
+    }
+    lastFps = current_fps_int;*/
+
     memset(eyeOffsets, 0, sizeof(ovrVector3f) * 2);
     ++frameIndex;
 
@@ -206,6 +272,10 @@ ovrHmd_DismissHSWDisplay(mpHmd);
         qglBindFramebuffer(GL_FRAMEBUFFER, mFboInfos[mCurrentFbo].Fbo);
     else
         qglBindFramebuffer(GL_FRAMEBUFFER,0);
+
+    //qglViewport(0,0, mRenderWidth, mRenderHeight);
+    //qglScissor(0,0, mRenderWidth, mRenderHeight);
+
     RenderTool::ClearFBO(mFboInfos[mCurrentFbo]);
 }
 
@@ -416,12 +486,12 @@ lastBodyYaw = bodyYaw_;
 bool HmdRendererOculusSdk::Get2DViewport(int& rX, int& rY, int& rW, int& rH)
 {
     // shrink the gui for the HMD display
-    bool in_camera_out = false;//ri.Cvar_Get( "cg_in_camera", "0", 0 )->integer;
-    float scale = in_camera_out ? 1.0f : 0.3f;
+    bool in_camera_out = ri->Cvar_Get( "cg_in_camera", "0", 0 )->integer;
+    float scale_ = in_camera_out ? 1.0f : 0.3f;
     float aspect = 1.0f;
 
-    rW = mRenderWidth * scale;
-    rH = mRenderWidth* scale * aspect;
+    rW = mRenderWidth * scale_;
+    rH = mRenderWidth * scale_ * aspect;
 
     rX = (mRenderWidth - rW)/2.0f;
     int xOff = mRenderWidth/3.5f;
@@ -432,7 +502,7 @@ bool HmdRendererOculusSdk::Get2DViewport(int& rX, int& rY, int& rW, int& rH)
     float halfIPD = mInterpupillaryDistance * 0.5f * meterToGame * (mCurrentFbo == 0 ? 1.0f : -1.0f);
 
     xOff *= mCurrentFbo == 0 ? 1 : -1;
-    rX += halfIPD;
+    rX += halfIPD / 200;
 
     rY = (mRenderHeight - rH)/2;
 
