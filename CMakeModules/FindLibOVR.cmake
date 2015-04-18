@@ -59,7 +59,7 @@
 #  License text for the above reference.)
 
 SET(LIBOVR_SEARCH_PATHS
-	/home/maxamillion/workspace/ovr_sdk_linux_0.4.3/LibOVR
+	/home/maxamillion/workspace/ovr_sdk_linux_0.4.4/LibOVR
 	#~/Library/Frameworks
 	#/Library/Frameworks
 	#/usr/local
@@ -78,7 +78,7 @@ FIND_PATH(LIBOVR_INCLUDE_DIR OVR_CAPI.h
 	PATHS ${LIBOVR_SEARCH_PATHS}
 )
 
-set(LIBOVR_INCLUDE_DIR /home/maxamillion/workspace/ovr_sdk_linux_0.4.3/LibOVR/src)
+set(LIBOVR_INCLUDE_DIR /home/maxamillion/workspace/ovr_sdk_linux_0.4.4/LibOVR/src)
 set(LIBOVR_NAMES ${LIBOVR_NAMES} libovr.so libovr.dll)
 find_library(LIBOVR_LIBRARY
 	NAMES

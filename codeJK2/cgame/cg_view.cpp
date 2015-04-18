@@ -742,14 +742,15 @@ static void CG_OffsetThirdPersonView( void )
 		{
 			cameraFocusAngles[YAW] += cg_thirdPersonAngle.value;
 		}
-		if ( cg.overrides.active & CG_OVERRIDE_3RD_PERSON_POF )
+		// VR: Don't use pitch values in third person, it makes you sick.
+		/*if ( cg.overrides.active & CG_OVERRIDE_3RD_PERSON_POF )
 		{
 			cameraFocusAngles[PITCH] += cg.overrides.thirdPersonPitchOffset;
 		}
 		else
 		{
 			cameraFocusAngles[PITCH] += cg_thirdPersonPitchOffset.value;
-		}
+		}*/
 	}
 
 	if ( !cg.renderingThirdPerson )// && (cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE) )
@@ -774,13 +775,13 @@ static void CG_OffsetThirdPersonView( void )
 	else
 	{
 		// Cap the pitch within reasonable limits
-		if (cameraFocusAngles[PITCH] > 89.0)
+		if (cameraFocusAngles[PITCH] > 0.0)
 		{
-			cameraFocusAngles[PITCH] = 89.0;
+			cameraFocusAngles[PITCH] = 0.0;
 		}
-		else if (cameraFocusAngles[PITCH] < -89.0)
+		else if (cameraFocusAngles[PITCH] < -0.0)
 		{
-			cameraFocusAngles[PITCH] = -89.0;
+			cameraFocusAngles[PITCH] = -0.0;
 		}
 
 		AngleVectors(cameraFocusAngles, camerafwd, NULL, cameraup);
@@ -814,14 +815,14 @@ static void CG_OffsetThirdPersonView( void )
 	// We won't do that for now.
 
 	// We must now take the angle taken from the camera target and location.
-	VectorSubtract(cameraCurTarget, cameraCurLoc, diff);
+	/*VectorSubtract(cameraCurTarget, cameraCurLoc, diff);
 	//Com_Printf( "%s\n", vtos(diff) );
 	float dist = VectorNormalize(diff);
 	if ( dist < 1.0f )
 	{//must be hitting something, need some value to calc angles, so use cam forward
 		VectorCopy( camerafwd, diff );
 	}
-	vectoangles(diff, cg.refdefViewAngles);
+	vectoangles(diff, cg.refdefViewAngles);*/
 
 	// Temp: just move the camera to the side a bit
 	extern vmCvar_t cg_thirdPersonHorzOffset;

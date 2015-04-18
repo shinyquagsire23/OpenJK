@@ -59,8 +59,8 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     mWindowHeight = mpHmd->Resolution.h;//windowHeight;
 
     // use higher render resolution for a better result
-    mRenderWidth = mWindowWidth/2;
-    mRenderHeight = mWindowHeight;
+    mRenderWidth = (mWindowWidth/2)*1.71f;
+    mRenderHeight = mWindowHeight*1.71f;
 
     for (int i=0; i<FBO_COUNT; i++)
     {
@@ -117,7 +117,7 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     hmd_caps = ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction;
     ovrHmd_SetEnabledCaps(mpHmd, hmd_caps);
 
-    distort_caps = ovrDistortionCap_Chromatic;// | ovrDistortionCap_TimeWarp  | ovrDistortionCap_Overdrive;  | ovrDistortionCap_Vignette;
+    distort_caps = ovrDistortionCap_Chromatic | ovrDistortionCap_Overdrive;//| ovrDistortionCap_TimeWarp;//  | ovrDistortionCap_Vignette;
     if(RENDER_WITH_DISTORT)
     {
         if(!ovrHmd_ConfigureRendering(mpHmd, &glcfg.Config, distort_caps, mpHmd->DefaultEyeFov, eye_rdesc)) 
@@ -246,7 +246,7 @@ bool HmdRendererOculusSdk::GetCustomProjectionMatrix(float* rProjectionMatrix, f
 
     float fov_rad = DEG2RAD(fov);
     float aspect = 0;
-    aspect = mWindowWidth / (2.1f* mWindowHeight);
+    aspect = mRenderWidth*2 / (2.1f* mRenderHeight);
 
     if (fov_rad == 0 || aspect == 0)
     {
@@ -295,7 +295,7 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	// it's unlikely to be hit in normal play. TODO: Maybe fix that to be better.
 	const int BOX_WIDTH = 16; //In degrees. Higher values tend to glitch more stereoscopically.
 
-	if((bodyYaw_ < (bodyMove - BOX_WIDTH) || bodyYaw_ > (bodyMove + BOX_WIDTH)))
+	/*if((bodyYaw_ < (bodyMove - BOX_WIDTH) || bodyYaw_ > (bodyMove + BOX_WIDTH)))
 	{
 		//bodyTotalDiff += bodyDiff;
 		if(bodyYaw_ < (bodyMove - BOX_WIDTH) && (bodyDiff < 300 && bodyDiff > -300))
@@ -325,10 +325,10 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	{
 		bodyTotalDiff = 0;
 		bodyYaw = bodyMove;
-	}
+	}*/
 
 	//More simple version. Smoother and doesn't bug out at 360/0 degrees, but has a ton of bugs in regards to external cams.
-	/*if(bodyDiff < 300 && bodyDiff > -300)
+	if(bodyDiff < 300 && bodyDiff > -300)
 		bodyTotalDiff += bodyDiff;
 
 	//For some reason when you die or go into a cam your yaw skyrockets and leaves it weird afterwards (offset or whatnot). A bit hacky but works to reset yaw after deaths.
@@ -351,7 +351,7 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	{
 		bodyYaw = bodyMove;
 		bodyModDiff += bodyDiff;
-	}*/
+	}
 
 
 	/*if(bodyDiff > 20 || bodyDiff < -20)
@@ -384,7 +384,7 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	//Com_Printf("Y: %f\n", pose.Position.y);
 	//Com_Printf("Z: %f\n\n", pose.Position.z);
 
-	const float positional_amplification = 2.0f;
+	const float positional_amplification = 1.0f;
 
 	float quat_pos[4];
     quat_pos[0] = (-pose.Position.z * positional_amplification * meterToGame * cos((float)DEG2RAD(bodyYaw))) - (-pose.Position.x * positional_amplification * meterToGame * sin((float)DEG2RAD(bodyYaw)));
