@@ -156,7 +156,7 @@ static bool GLimp_DetectAvailableModes(void)
 	if( SDL_GetWindowDisplayMode( screen, &windowMode ) < 0 )
 	{
 		Com_Printf( "Couldn't get window display mode, no resolutions detected (%s).\n", SDL_GetError() );
-		return false;
+		//return false;
 	}
 
 	int numDisplayModes = SDL_GetNumDisplayModes( display );
@@ -573,13 +573,13 @@ static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qbool
 	{
 		case RSERR_INVALID_FULLSCREEN:
 			Com_Printf( "...WARNING: fullscreen unavailable in this mode\n" );
-			return qfalse;
+			return qtrue;
 		case RSERR_INVALID_MODE:
 			Com_Printf( "...WARNING: could not set the given mode (%d)\n", mode );
-			return qfalse;
+			return qtrue;
 		case RSERR_UNKNOWN:
-			Com_Printf( "...ERROR: no display modes could be found.\n" );
-			return qfalse;
+			Com_Printf( "...WARNING: no display modes could be found.\n" );
+			return qtrue;
 		default:
 			break;
 	}

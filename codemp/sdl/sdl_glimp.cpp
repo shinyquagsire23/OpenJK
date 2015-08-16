@@ -154,7 +154,7 @@ static bool GLimp_DetectAvailableModes(void)
 	if( SDL_GetWindowDisplayMode( screen, &windowMode ) < 0 )
 	{
 		Com_Printf( "Couldn't get window display mode, no resolutions detected (%s).\n", SDL_GetError() );
-		return false;
+		//return false;
 	}
 
 	int numDisplayModes = SDL_GetNumDisplayModes( display );

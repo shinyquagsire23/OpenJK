@@ -109,7 +109,7 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     // Configure OpenGL.
     memset(&glcfg, 0, sizeof glcfg);
     glcfg.OGL.Header.API = ovrRenderAPI_OpenGL;
-    glcfg.OGL.Header.RTSize = mpHmd->Resolution;
+    glcfg.OGL.Header.BackBufferSize = mpHmd->Resolution;
     glcfg.OGL.Header.Multisample = 1;
     //glcfg.OGL.Disp = glXGetCurrentDisplay();
     //glcfg.OGL.Win = glXGetCurrentDrawable();
@@ -117,7 +117,7 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     hmd_caps = ovrHmdCap_LowPersistence | ovrHmdCap_DynamicPrediction;
     ovrHmd_SetEnabledCaps(mpHmd, hmd_caps);
 
-    distort_caps = ovrDistortionCap_Chromatic | ovrDistortionCap_Overdrive;//| ovrDistortionCap_TimeWarp;//  | ovrDistortionCap_Vignette;
+    distort_caps = ovrDistortionCap_Overdrive;//| ovrDistortionCap_TimeWarp;//  | ovrDistortionCap_Vignette;
     if(RENDER_WITH_DISTORT)
     {
         if(!ovrHmd_ConfigureRendering(mpHmd, &glcfg.Config, distort_caps, mpHmd->DefaultEyeFov, eye_rdesc)) 
@@ -127,7 +127,7 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     }
 
     /* disable the retarded "health and safety warning" */
-    ovrhmd_EnableHSWDisplaySDKRender(mpHmd, false);
+    //ovrhmd_EnableHSWDisplaySDKRender(mpHmd, false);
 
     mCurrentFbo = -1;
     mIsInitialized = true;

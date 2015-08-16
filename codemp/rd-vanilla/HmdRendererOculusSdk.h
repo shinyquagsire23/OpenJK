@@ -73,7 +73,7 @@ private:
     float lastBodyYaw = 0;
 	float bodyTotalDiff = 0;
 	float bodyModDiff = 0;
-	float scale = 1.25f;
+	float scale = 2.0f;
 	float bufferScale = 2;
 	int lastFps = 150;
 
