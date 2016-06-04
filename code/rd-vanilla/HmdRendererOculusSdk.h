@@ -15,6 +15,7 @@
 
 //#include <openhmd.h>
 
+
 class HmdDeviceOculusSdk;
 
 class HmdRendererOculusSdk : public IHmdRenderer
@@ -50,6 +51,7 @@ private:
     RenderTool::FrameBufferInfo testBuffer;
 
     bool mIsInitialized;
+    bool bodyDiffOnce = false;
 
     GLhandleARB  mOculusProgram;
 
@@ -67,7 +69,7 @@ private:
     unsigned int distort_caps;
     const bool RENDER_WITH_DISTORT = 1;
     float bodyYaw = 0;
-    float bodyMove = 9001;
+    float bodyMove;
     float lastBodyYaw = 0;
 	float bodyTotalDiff = 0;
 	float bodyModDiff = 0;

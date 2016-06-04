@@ -16,6 +16,11 @@ This file is part of Jedi Academy.
 */
 // Copyright 2001-2013 Raven Software
 
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+void *vr_ipc_buf;
+
 #include "cg_media.h"
 #include "FxScheduler.h"
 
@@ -2078,6 +2083,28 @@ Called after every level change or subsystem restart
 =================
 */
 void CG_Init( int serverCommandSequence ) {
+
+    struct stat sb;
+    int fdSrc;
+    
+    fdSrc = open("/tmp/ripvrcontroller", O_RDONLY);
+    Com_Printf("Opening /tmp/ripvrcontroller\n");
+    if (fdSrc != -1)
+    {
+        Com_Printf("fdSrc != -1\n");
+        if (fstat(fdSrc, &sb) != -1)
+        {
+            Com_Printf("fstat gud\n");
+            if (sb.st_size != 0)
+            {
+                Com_Printf("size good\n");
+                vr_ipc_buf = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fdSrc, 0);
+                Com_Printf("vr_ipc_buf mapped to %x\n", vr_ipc_buf);
+            }
+        }
+    }
+
+
 	cgs.serverCommandSequence = serverCommandSequence;
 
 	cgi_Cvar_Set( "cg_drawHUD", "1" );

@@ -43,8 +43,33 @@ HmdRendererOculusSdk::~HmdRendererOculusSdk()
 
 }
 
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+void *vr_ipc_buf;
+
 bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo platformInfo)
 {
+    bodyMove = 9001.0f;
+    struct stat sb;
+    int fdSrc;		
+	fdSrc = open("/tmp/ripvrcontroller", O_RDONLY);
+    Com_Printf("Opening /tmp/ripvrcontroller\n");
+    if (fdSrc != -1)
+    {
+        Com_Printf("fdSrc != -1\n");
+        if (fstat(fdSrc, &sb) != -1)
+        {
+            Com_Printf("fstat gud\n");
+            if (sb.st_size != 0)
+            {
+                Com_Printf("size good\n");
+                vr_ipc_buf = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fdSrc, 0);
+                Com_Printf("vr_ipc_buf mapped to %x\n", vr_ipc_buf);
+            }
+        }
+    }
+
     Com_Printf("HMD setting up...\n");
     if (mpDevice == NULL || mpDevice->GetHmd() == NULL)
     {
@@ -59,8 +84,8 @@ bool HmdRendererOculusSdk::Init(int windowWidth, int windowHeight, PlatformInfo 
     mWindowHeight = mpHmd->Resolution.h;//windowHeight;
 
     // use higher render resolution for a better result
-    mRenderWidth = (mWindowWidth/2)*1.71f;
-    mRenderHeight = mWindowHeight*1.71f;
+    mRenderWidth = (mWindowWidth/2);//*1.71f;
+    mRenderHeight = mWindowHeight;//*1.71f;
 
     for (int i=0; i<FBO_COUNT; i++)
     {
@@ -279,21 +304,36 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
     {
         return false;
     }
+    
+    int stick_x_raw = *(int*)(vr_ipc_buf+(sizeof(int)*11));
+	int stick_y_raw = *(int*)(vr_ipc_buf+(sizeof(int)*10));
+	int stick_x2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*28));
+	int stick_y2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*27));
+	    
+	float stick_x = -(float(stick_x_raw) - 525) / 525;
+    float stick_y = -(float(stick_y_raw) - 525) / 525;
+    float stick_x2 = -(float(stick_x2_raw) - 525) / 525;
+    float stick_y2 = -(float(stick_y2_raw) - 525) / 525;
 
     //meter to game unit (game unit = feet*2)
-    float meterToGame = 3.28084f*2.0f;
+    float meterToGame = 3.28084f*2.0f*5.0f;
 
 	float bodyDiff = lastBodyYaw - bodyYaw_;
-
-    if(bodyMove == 9001)
-		bodyMove = bodyYaw_;
 
 	// Make an imaginary box where the crosshair can roam free from the head.
 	// Similar to HL2/TF2's aiming setup. TODO: Make box width & height adjustable w/ cvars
 	// To work with 360/0 degree looping, the difference in yaw is checked to be
 	// over 300 (aka an unusual turn amount). This amount *can* be hit normally but
 	// it's unlikely to be hit in normal play. TODO: Maybe fix that to be better.
-	const int BOX_WIDTH = 16; //In degrees. Higher values tend to glitch more stereoscopically.
+	const int BOX_WIDTH = 100; //In degrees. Higher values tend to glitch more stereoscopically.
+	
+	if(!bodyDiffOnce)
+	{
+		bodyMove = bodyYaw_;
+		bodyDiff = 0.0f;
+		//bodyYaw_ -= BOX_WIDTH / 2;
+		bodyDiffOnce = true;
+    }
 
 	/*if((bodyYaw_ < (bodyMove - BOX_WIDTH) || bodyYaw_ > (bodyMove + BOX_WIDTH)))
 	{
@@ -332,20 +372,26 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 		bodyTotalDiff += bodyDiff;
 
 	//For some reason when you die or go into a cam your yaw skyrockets and leaves it weird afterwards (offset or whatnot). A bit hacky but works to reset yaw after deaths.
-	if(bodyYaw > 500 || bodyYaw < -500)
+	if(fabsf(bodyYaw) > 500)
 	{
 		bodyTotalDiff = 0;
 		bodyModDiff = 0;
 		bodyDiff = 0;
 		bodyMove = bodyYaw_;
 		bodyYaw = bodyMove;
+		bodyDiffOnce = false;
 	}
 
-	if(bodyTotalDiff <= -BOX_WIDTH || bodyTotalDiff >= BOX_WIDTH)
+	if(fabsf(bodyTotalDiff) >= BOX_WIDTH)
 	{
 		bodyYaw = bodyYaw_ + bodyModDiff;
 		bodyMove = bodyYaw_ + bodyModDiff;
 		bodyTotalDiff = (bodyTotalDiff < 0 ? -BOX_WIDTH : BOX_WIDTH);
+	}
+	else if(fabsf(stick_x) > 0.6f)
+	{
+	    bodyYaw = bodyYaw_ + bodyModDiff;
+		bodyMove = bodyYaw_ + bodyModDiff;
 	}
 	else
 	{
@@ -358,9 +404,9 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 	{
 		Com_Printf("[HMD] Current body diff: %f\n", bodyDiff);
 		Com_Printf("[HMD] Current eye: %i\n", mCurrentFbo);
-		Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);*/
-		//Com_Printf("[HMD] Current applied yaw: %f\n", bodyYaw);
-		/*Com_Printf("[HMD] Current body move: %f\n", bodyMove);
+		Com_Printf("[HMD] Current yaw: %f\n", bodyYaw_);
+		Com_Printf("[HMD] Current applied yaw: %f\n", bodyYaw);
+		//Com_Printf("[HMD] Current body move: %f\n", bodyMove);
 	}*/
 
 
@@ -380,9 +426,9 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
 
     glm::mat4 hmdRotationMat = glm::mat4_cast(hmdRotation) * glm::mat4_cast(convertHmdToGame);
 
-	//Com_Printf("X: %f\n", pose.Position.x);
-	//Com_Printf("Y: %f\n", pose.Position.y);
-	//Com_Printf("Z: %f\n\n", pose.Position.z);
+	//Com_Printf("X: %f\n", pose.Orientation.x);
+	//Com_Printf("Y: %f\n", pose.Orientation.y);
+	//Com_Printf("Z: %f\n\n", pose.Orientation.z);
 
 	const float positional_amplification = 1.0f;
 
@@ -427,7 +473,7 @@ bool HmdRendererOculusSdk::Get2DViewport(int& rX, int& rY, int& rW, int& rH)
     int xOff = mRenderWidth/3.5f;
 
     //meter to game unit (game unit = feet*2)
-    float meterToGame = 3.28084f*2.0f;
+    float meterToGame = 3.28084f*2.0f*5.0f;
     // apply ipd
     float halfIPD = mInterpupillaryDistance * 0.5f * meterToGame * (mCurrentFbo == 0 ? 1.0f : -1.0f);
 

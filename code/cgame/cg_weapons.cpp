@@ -818,6 +818,27 @@ void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles )
 
 	VectorCopy( cg.refdef.vieworg, origin );
 	VectorCopy( cg.refdefViewAnglesWeapon, angles );
+	
+	if(vr_ipc_buf != NULL)
+	{
+	    vec3_t vr_r;
+	    float vr_r_x = *(float*)(vr_ipc_buf+(sizeof(float)*0)) / (38.125f );
+	    float vr_r_y = *(float*)(vr_ipc_buf+(sizeof(float)*1)) / (-38.125f);
+	    float vr_r_z = *(float*)(vr_ipc_buf+(sizeof(float)*2)) / (38.125f);
+	    
+	    float vr_r_pitch = *(float*)(vr_ipc_buf+(sizeof(float)*3));
+	    float vr_r_yaw = *(float*)(vr_ipc_buf+(sizeof(float)*4));
+	    float vr_r_roll = *(float*)(vr_ipc_buf+(sizeof(float)*5));
+	    
+	    vr_r[1] = -(vr_r_x * cos(cg.refdefViewAngles[YAW]*(M_PI / 180)) + vr_r_z * sin(cg.refdefViewAngles[YAW]*(M_PI / 180)));
+	    vr_r[0] = -(-vr_r_x * sin(cg.refdefViewAngles[YAW]*(M_PI / 180)) + vr_r_z * cos(cg.refdefViewAngles[YAW]*(M_PI / 180)));
+	    vr_r[2] = vr_r_y;
+	    VectorAdd(origin, vr_r, origin);
+	    
+	    /*cg.refdefViewAnglesWeapon[ROLL] = vr_r_pitch;
+	    cg.refdefViewAnglesWeapon[YAW] += vr_r_yaw + 180.0f;
+	    cg.refdefViewAnglesWeapon[PITCH] = vr_r_roll;*/
+	}
 
 	// on odd legs, invert some angles
 	if ( cg.bobcycle & 1 ) {
@@ -856,6 +877,9 @@ void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles )
 	angles[ROLL] += scale * fracsin * 0.01;
 	angles[YAW] += scale * fracsin * 0.01;
 	angles[PITCH] += (scale * 0.5f ) * fracsin * 0.01;
+	
+	//angles[ROLL] = 0.0f;
+	//angles[PITCH] = 0.0f;
 }
 
 /*
@@ -1116,6 +1140,9 @@ void CG_AddViewWeapon( playerState_t *ps )
 	VectorMA( hand.origin, cg_gun_x.value+extraOffset[0], cg.refdef.viewaxis[0], hand.origin );
 	VectorMA( hand.origin, (cg_gun_y.value+leanOffset+extraOffset[1]), cg.refdef.viewaxis[1], hand.origin );
 	VectorMA( hand.origin, (cg_gun_z.value+fovOffset+extraOffset[2]), cg.refdef.viewaxis[2], hand.origin );
+	
+	VectorCopy(hand.origin, cent->gent->client->ps.viewangles);
+	
 	//VectorMA( hand.origin, 0, cg.refdef.viewaxis[0], hand.origin );
 	//VectorMA( hand.origin, (0+leanOffset), cg.refdef.viewaxis[1], hand.origin );
 	//VectorMA( hand.origin, (0+fovOffset), cg.refdef.viewaxis[2], hand.origin );
@@ -1182,8 +1209,11 @@ void CG_AddViewWeapon( playerState_t *ps )
 			return;
 		}
 
+        angles[YAW] = 0;
+		angles[PITCH] = 0;
+		angles[ROLL] = 0;
 		AnglesToAxis( angles, gun.axis );
-		CG_PositionEntityOnTag( &gun, &hand, weapon->handsModel, "tag_weapon");
+		CG_PositionRotatedEntityOnTag( &gun, &hand, weapon->handsModel, "tag_weapon", NULL);
 
 		gun.renderfx = RF_DEPTHHACK | RF_FIRST_PERSON;
 

@@ -406,5 +406,6 @@ typedef struct {
 } cgs_t;
 
 extern	cgs_t			cgs;
+extern void *vr_ipc_buf;
 
 #endif //__CG_MEDIA_H_

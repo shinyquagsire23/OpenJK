@@ -1214,7 +1214,7 @@ void Com_Init( char *commandLine ) {
 		//
 		// init commands and vars
 		//
-		com_maxfps = Cvar_Get ("com_maxfps", "125", CVAR_ARCHIVE);
+		com_maxfps = Cvar_Get ("com_maxfps", "180", CVAR_ARCHIVE);
 
 		com_logfile = Cvar_Get ("logfile", "0", CVAR_TEMP );
 

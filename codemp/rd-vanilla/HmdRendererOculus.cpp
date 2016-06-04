@@ -37,8 +37,8 @@ bool HmdRendererOculus::Init(int windowWidth, int windowHeight, PlatformInfo pla
     mWindowHeight = windowHeight;
 
 
-    mRenderWidth = mWindowWidth / 2;
-    mRenderHeight = mWindowHeight;
+    mRenderWidth = (mWindowWidth / 2) * 1.7f;
+    mRenderHeight = (mWindowHeight) * 1.7f;
 
     for (int i=0; i<FBO_COUNT; i++)
     {

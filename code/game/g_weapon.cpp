@@ -1227,16 +1227,17 @@ void FireWeapon( gentity_t *ent, qboolean alt_fire )
 	ent->alt_fire = alt_fire;
 	if (!pVeh)
 	{
-		if (ent->NPC && (ent->NPC->scriptFlags&SCF_FIRE_WEAPON_NO_ANIM))
+		//if (ent->NPC && (ent->NPC->scriptFlags&SCF_FIRE_WEAPON_NO_ANIM))
 		{
 		 	VectorCopy( ent->client->renderInfo.muzzlePoint, muzzle );
 			VectorCopy( ent->client->renderInfo.muzzleDir, forwardVec );
+			VectorCopy( ent->client->renderInfo.muzzleDir, ent->client->ps.viewangles);
 			MakeNormalVectors(forwardVec, vrightVec, up);
 		}
-		else
-		{
-			CalcMuzzlePoint ( ent, forwardVec, vrightVec, up, muzzle , 0);
-		}
+		//else
+		//{
+			//CalcMuzzlePoint ( ent, forwardVec, vrightVec, up, muzzle , 0);
+		//}
 	}
 
 	// fire the specific weapon

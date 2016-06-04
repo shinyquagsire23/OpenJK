@@ -2965,7 +2965,7 @@ static void CG_ScanForCrosshairEntity( qboolean scanAll )
     //CROSSHAIR is now always drawn from this trace so it's 100% accurate
 	if ( 1 )	//(cg_dynamicCrosshair.integer )
 	{//draw crosshair at endpoint
-		CG_DrawCrosshair( trace.endpos, g_crosshairEntDist);
+		//CG_DrawCrosshair( trace.endpos, g_crosshairEntDist);
 	}    
     
 	if ( !traceEnt )

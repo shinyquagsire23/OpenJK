@@ -455,6 +455,11 @@ static void IN_InitJoystick( void )
 	SDL_JoystickEventState(SDL_QUERY);
 }
 
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+void *vr_ipc_buf;
+
 void IN_Init( void *windowData )
 {
 	int appState;
@@ -492,6 +497,25 @@ void IN_Init( void *windowData )
 
 	IN_InitJoystick( );
 	Com_DPrintf( "------------------------------------\n" );
+	
+	struct stat sb;
+    int fdSrc;		
+	fdSrc = open("/tmp/ripvrcontroller", O_RDONLY);
+    Com_Printf("Opening /tmp/ripvrcontroller\n");
+    if (fdSrc != -1)
+    {
+        Com_Printf("fdSrc != -1\n");
+        if (fstat(fdSrc, &sb) != -1)
+        {
+            Com_Printf("fstat gud\n");
+            if (sb.st_size != 0)
+            {
+                Com_Printf("size good\n");
+                vr_ipc_buf = mmap(NULL, sb.st_size, PROT_READ, MAP_PRIVATE, fdSrc, 0);
+                Com_Printf("vr_ipc_buf mapped to %x\n", vr_ipc_buf);
+            }
+        }
+    }
 }
 
 /*
@@ -499,6 +523,11 @@ void IN_Init( void *windowData )
 IN_ProcessEvents
 ===============
 */
+float vr_r_y_last = 0.0f;
+float vr_r_x_last = 0.0f;
+int vr_r_h1_last = 0;
+int vr_r_t1_last = 0;
+int vr_r_t2_last = 0;
 static void IN_ProcessEvents( void )
 {
 	SDL_Event e;
@@ -508,8 +537,108 @@ static void IN_ProcessEvents( void )
 	if( !SDL_WasInit( SDL_INIT_VIDEO ) )
 			return;
 
+    //Controller stuff
+    if(vr_ipc_buf != NULL)
+    {
+        float vr_r_pitch = *(float*)(vr_ipc_buf+(sizeof(float)*3));
+	    float vr_r_yaw = *(float*)(vr_ipc_buf+(sizeof(float)*4));
+	    float vr_r_roll = *(float*)(vr_ipc_buf+(sizeof(float)*5));
+
+        float vr_r_x = *(float*)(vr_ipc_buf+(sizeof(float)*0));
+	    float vr_r_y = *(float*)(vr_ipc_buf+(sizeof(float)*1));
+	    float vr_r_z = *(float*)(vr_ipc_buf+(sizeof(float)*2));
+	    
+	    int stick_x_raw = *(int*)(vr_ipc_buf+(sizeof(int)*11));
+	    int stick_y_raw = *(int*)(vr_ipc_buf+(sizeof(int)*10));
+	    int stick_x2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*28));
+	    int stick_y2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*27));
+	    
+	    float stick_x = -(float(stick_x_raw) - 525) / 525;
+        float stick_y = -(float(stick_y_raw) - 525) / 525;
+        float stick_x2 = -(float(stick_x2_raw) - 525) / 525;
+        float stick_y2 = -(float(stick_y2_raw) - 525) / 525;
+        
+        //Com_Printf("%f %f %i %i\n", stick_x2, stick_y2, stick_x2_raw, stick_y2_raw);
+        
+        if(fabsf(stick_x) > 0.6f)
+        {
+            if(stick_x > 0.0f)
+                Sys_QueEvent( 0, SE_KEY,A_CURSOR_RIGHT, qtrue, 0, NULL );
+            else
+                Sys_QueEvent( 0, SE_KEY,A_CURSOR_LEFT, qtrue, 0, NULL );
+        }
+        else
+        {
+            Sys_QueEvent( 0, SE_KEY,A_CURSOR_RIGHT, qfalse, 0, NULL );
+            Sys_QueEvent( 0, SE_KEY,A_CURSOR_LEFT, qfalse, 0, NULL );
+        }
+        
+        if(fabsf(stick_y2) > 0.6f || fabsf(stick_y) > 0.6f)
+        {
+            if(stick_y2 < 0.0f || stick_y < 0.0f)
+                Sys_QueEvent( 0, SE_KEY,A_CAP_W, qtrue, 0, NULL );
+            else
+                Sys_QueEvent( 0, SE_KEY,A_CAP_S, qtrue, 0, NULL );
+        }
+        else
+        {
+            Sys_QueEvent( 0, SE_KEY,A_CAP_W, qfalse, 0, NULL );
+            Sys_QueEvent( 0, SE_KEY,A_CAP_S, qfalse, 0, NULL );
+        }
+        
+        if(fabsf(stick_x2) > 0.6f)
+        {
+            if(stick_x2 > 0.0f)
+                Sys_QueEvent( 0, SE_KEY,A_CAP_D, qtrue, 0, NULL );
+            else
+                Sys_QueEvent( 0, SE_KEY,A_CAP_A, qtrue, 0, NULL );
+        }
+        else
+        {
+            Sys_QueEvent( 0, SE_KEY,A_CAP_A, qfalse, 0, NULL );
+            Sys_QueEvent( 0, SE_KEY,A_CAP_D, qfalse, 0, NULL );
+        }
+	    
+	    int vr_r_r = !*(int*)(vr_ipc_buf+(sizeof(int)*9));
+	    int vr_r_l = !*(int*)(vr_ipc_buf+(sizeof(int)*8));
+	    
+	    int vr_r_h1 = !*(int*)(vr_ipc_buf+(sizeof(int)*12));
+	    int vr_r_t1 = !*(int*)(vr_ipc_buf+(sizeof(int)*13));
+	    int vr_r_t2 = !*(int*)(vr_ipc_buf+(sizeof(int)*14));
+	    int vr_l_h1 = !*(int*)(vr_ipc_buf+(sizeof(int)*29));
+	    int vr_l_t1 = !*(int*)(vr_ipc_buf+(sizeof(int)*30));
+	    int vr_l_t2 = !*(int*)(vr_ipc_buf+(sizeof(int)*31));
+
+	    float vr_r_pitch_trans = fabsf(vr_r_pitch - 20.0f);
+	    //Com_Printf("%x %x %x\n", vr_r_h1, vr_r_t1, vr_r_t2);
+	    
+	    //Sys_QueEvent( 0, SE_MOUSE, (int)(vr_r_x - vr_r_x_last)*5.0f, (int)(vr_r_y - vr_r_y_last)*5.0f, 0, NULL );
+	    if((vr_r_h1 != vr_r_h1_last) || (vr_r_t1 != vr_r_t1_last))
+	    {
+	        Sys_QueEvent( 0, SE_KEY, A_MOUSE1, ( vr_r_t1 | vr_r_h1 ? qtrue : qfalse ), 0, NULL );
+	    }
+	    
+	    if(vr_r_t2 != vr_r_t2_last)
+	    {
+	        Sys_QueEvent( 0, SE_KEY, A_MOUSE2, ( vr_r_t2 ? qtrue : qfalse ), 0, NULL );
+	    }
+	    
+	    Sys_QueEvent( 0, SE_KEY,A_OPEN_SQUARE, vr_r_l ? qtrue : qfalse, 0, NULL );   
+        Sys_QueEvent( 0, SE_KEY,A_CLOSE_SQUARE, vr_r_r ? qtrue : qfalse, 0, NULL );
+        Sys_QueEvent( 0, SE_KEY,A_SPACE, vr_l_t1 ? qtrue : qfalse, 0, NULL );
+        Sys_QueEvent( 0, SE_KEY,A_CAP_C, vr_l_t2 ? qtrue : qfalse, 0, NULL );
+        Sys_QueEvent( 0, SE_KEY,A_CAP_R, vr_l_h1 ? qtrue : qfalse, 0, NULL );
+	    
+	    vr_r_y_last = vr_r_y;
+	    vr_r_x_last = vr_r_x;
+	    vr_r_h1_last = vr_r_h1;
+        vr_r_t1_last = vr_r_t1;
+        vr_r_t2_last = vr_r_t2;
+	}
+    
 	while( SDL_PollEvent( &e ) )
 	{
+	    //SDL_WaitEvent( &e );
 		switch( e.type )
 		{
 			case SDL_KEYDOWN:

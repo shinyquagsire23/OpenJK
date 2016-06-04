@@ -1718,9 +1718,9 @@ static qboolean CG_CalcViewValues( void ) {
 		}
 	}
 
-	if ( (cg.renderingThirdPerson||cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE) 
+	if ( (cg.renderingThirdPerson/*||cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE*/) 
 		&& !cg.zoomMode 
-		&& !viewEntIsCam )
+		&& !viewEntIsCam && false)
 	{
 		// back away from character
 //		if ( cg_thirdPerson.integer == CG_CAM_ABOVE)
@@ -1732,7 +1732,8 @@ static qboolean CG_CalcViewValues( void ) {
 		// First person saber
 		if ( !cg.renderingThirdPerson )
 		{
-			if ( cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE )
+			//if ( cg.snap->ps.weapon == WP_SABER||cg.snap->ps.weapon == WP_MELEE )
+			if(false)
 			{
 				vec3_t dir;
 				CG_OffsetFirstPersonView( qtrue );
@@ -1809,6 +1810,22 @@ static qboolean CG_CalcViewValues( void ) {
 	}
 
 	VectorCopy(cg.refdefViewAngles, cg.refdefViewAnglesWeapon);
+	
+	
+	
+	if(vr_ipc_buf != NULL)
+	{    
+	    float vr_r_pitch = *(float*)(vr_ipc_buf+(sizeof(float)*3));
+	    float vr_r_yaw = *(float*)(vr_ipc_buf+(sizeof(float)*4));
+	    float vr_r_roll = *(float*)(vr_ipc_buf+(sizeof(float)*5));
+	    
+	    cg.refdefViewAnglesWeapon[ROLL] = vr_r_roll - 180.0f;
+	    cg.refdefViewAnglesWeapon[YAW] += vr_r_yaw;
+	    cg.refdefViewAnglesWeapon[PITCH] = vr_r_pitch + 55.0f;
+	    
+	    centity_t	*playerCent = &cg_entities[0];
+	    VectorCopy(cg.refdefViewAnglesWeapon, playerCent->gent->client->renderInfo.muzzleDir);
+	}
 
         cg.refdef.delta_yaw = cg.refdefViewAngles[YAW];
 	//Com_Printf("[CG] Current yaw: %f\n", cg.refdefViewAngles[YAW]); 
@@ -2141,7 +2158,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
         // Don't draw the in-view weapon when in camera mode
         if ( !in_camera 
             && !cg_pano.integer 
-            && cg.snap->ps.weapon != WP_SABER
+            //&& cg.snap->ps.weapon != WP_SABER
             && ( cg.snap->ps.viewEntity == 0 || cg.snap->ps.viewEntity >= ENTITYNUM_WORLD ) )
         {
 		//HMD: TODO: Make third vs first person models an option
@@ -2361,7 +2378,7 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView ) {
 	// Don't draw the in-view weapon when in camera mode
 	if ( !in_camera 
 		&& !cg_pano.integer 
-		&& cg.snap->ps.weapon != WP_SABER
+		//&& cg.snap->ps.weapon != WP_SABER
 		&& ( cg.snap->ps.viewEntity == 0 || cg.snap->ps.viewEntity >= ENTITYNUM_WORLD ) )
 	{
 		//HMD: TODO: Make third vs first person models an option

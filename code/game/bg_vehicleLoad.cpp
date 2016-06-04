@@ -689,7 +689,8 @@ vehField_t vehicleFields[] =
 	{"turret2GunnerViewTag", VFOFS(turret[1].gunnerViewTag), VF_LSTRING},
 //===END TURRETS===========================================================================
 	//terminating entry
-	{0, -1, VF_INT}
+	{0, static_cast<size_t>(-1), VF_INT}
+
 };
 
 stringID_table_t VehicleTable[VH_NUM_VEHICLES+1] =
