@@ -63,7 +63,7 @@ SET(LIBOVR_SEARCH_PATHS
 	#~/Library/Frameworks
 	#/Library/Frameworks
 	#/usr/local
-	#/usr
+	/usr
 	#/sw # Fink
 	#/opt/local # DarwinPorts
 	#/opt/csw # Blastwave
@@ -74,7 +74,7 @@ FIND_PATH(LIBOVR_INCLUDE_DIR OVR_CAPI.h
 	NAMES OVR_CAPI.h
 	HINTS
 	$ENV{LIBOVRDIR}
-	PATH_SUFFIXES include/ovr-0.5.0.1/LibOVR/Include include
+	PATH_SUFFIXES include/ovr-0.5.0.1/LibOVR/Include Include include
 	PATHS ${LIBOVR_SEARCH_PATHS}
 )
 

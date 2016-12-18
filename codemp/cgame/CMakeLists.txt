@@ -118,6 +118,8 @@ add_library(${MPCGame} SHARED ${MPCGameFiles})
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
 	set_target_properties(${MPCGame} PROPERTIES PREFIX "")
+	find_package(LibOVR REQUIRED)
+	set(MPCGameIncludeDirectories ${MPCGameIncludeDirectories} ${LIBOVR_INCLUDE_DIR})
 endif(NOT WIN32)
 
 if(WIN32)

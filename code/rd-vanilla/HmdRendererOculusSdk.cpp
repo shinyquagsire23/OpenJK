@@ -305,18 +305,26 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
         return false;
     }
     
-    int stick_x_raw = *(int*)(vr_ipc_buf+(sizeof(int)*11));
-	int stick_y_raw = *(int*)(vr_ipc_buf+(sizeof(int)*10));
-	int stick_x2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*28));
-	int stick_y2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*27));
-	    
-	float stick_x = -(float(stick_x_raw) - 525) / 525;
-    float stick_y = -(float(stick_y_raw) - 525) / 525;
-    float stick_x2 = -(float(stick_x2_raw) - 525) / 525;
-    float stick_y2 = -(float(stick_y2_raw) - 525) / 525;
+    float stick_x = 0.0f;
+    float stick_y = 0.0f;
+    float stick_x2 = 0.0f;
+    float stick_y2 = 0.0f;
+    
+    if(vr_ipc_buf)
+    {
+        int stick_x_raw = *(int*)(vr_ipc_buf+(sizeof(int)*11));
+	    int stick_y_raw = *(int*)(vr_ipc_buf+(sizeof(int)*10));
+	    int stick_x2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*28));
+	    int stick_y2_raw = *(int*)(vr_ipc_buf+(sizeof(int)*27));
+	        
+	    stick_x = -(float(stick_x_raw) - 525) / 525;
+        stick_y = -(float(stick_y_raw) - 525) / 525;
+        stick_x2 = -(float(stick_x2_raw) - 525) / 525;
+        stick_y2 = -(float(stick_y2_raw) - 525) / 525;
+    }
 
     //meter to game unit (game unit = feet*2)
-    float meterToGame = 3.28084f*2.0f*5.0f;
+    float meterToGame = 26.2464f;
 
 	float bodyDiff = lastBodyYaw - bodyYaw_;
 
@@ -414,6 +422,7 @@ bool HmdRendererOculusSdk::GetCustomViewMatrix(float* rViewMatrix, float xPos, f
     float quat[4];
     //bodyYaw = bodyYaw_;
     ovrPosef pose = mpTs.HeadPose.ThePose;
+    //pose.Position.z += 1.8f; //DEBUG: Shift head back a bit to see body
     quat[0] = pose.Orientation.x;
     quat[1] = pose.Orientation.y;
     quat[2] = pose.Orientation.z;
@@ -473,7 +482,7 @@ bool HmdRendererOculusSdk::Get2DViewport(int& rX, int& rY, int& rW, int& rH)
     int xOff = mRenderWidth/3.5f;
 
     //meter to game unit (game unit = feet*2)
-    float meterToGame = 3.28084f*2.0f*5.0f;
+    float meterToGame = 26.2464f;
     // apply ipd
     float halfIPD = mInterpupillaryDistance * 0.5f * meterToGame * (mCurrentFbo == 0 ? 1.0f : -1.0f);
 

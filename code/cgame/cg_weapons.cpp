@@ -822,9 +822,9 @@ void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles )
 	if(vr_ipc_buf != NULL)
 	{
 	    vec3_t vr_r;
-	    float vr_r_x = *(float*)(vr_ipc_buf+(sizeof(float)*0)) / (38.125f );
-	    float vr_r_y = *(float*)(vr_ipc_buf+(sizeof(float)*1)) / (-38.125f);
-	    float vr_r_z = *(float*)(vr_ipc_buf+(sizeof(float)*2)) / (38.125f);
+	    float vr_r_x = *(float*)(vr_ipc_buf+(sizeof(float)*0)) / (26.2464f );
+	    float vr_r_y = *(float*)(vr_ipc_buf+(sizeof(float)*1)) / (-26.2464f);
+	    float vr_r_z = *(float*)(vr_ipc_buf+(sizeof(float)*2)) / (26.2464f);
 	    
 	    float vr_r_pitch = *(float*)(vr_ipc_buf+(sizeof(float)*3));
 	    float vr_r_yaw = *(float*)(vr_ipc_buf+(sizeof(float)*4));
@@ -833,6 +833,7 @@ void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles )
 	    vr_r[1] = -(vr_r_x * cos(cg.refdefViewAngles[YAW]*(M_PI / 180)) + vr_r_z * sin(cg.refdefViewAngles[YAW]*(M_PI / 180)));
 	    vr_r[0] = -(-vr_r_x * sin(cg.refdefViewAngles[YAW]*(M_PI / 180)) + vr_r_z * cos(cg.refdefViewAngles[YAW]*(M_PI / 180)));
 	    vr_r[2] = vr_r_y;
+
 	    VectorAdd(origin, vr_r, origin);
 	    
 	    /*cg.refdefViewAnglesWeapon[ROLL] = vr_r_pitch;
@@ -878,6 +879,88 @@ void CG_CalculateWeaponPosition( vec3_t origin, vec3_t angles )
 	angles[YAW] += scale * fracsin * 0.01;
 	angles[PITCH] += (scale * 0.5f ) * fracsin * 0.01;
 	
+	//angles[ROLL] = 0.0f;
+	//angles[PITCH] = 0.0f;
+}
+
+void CG_CalculateWeaponPositionSaber( vec3_t origin, vec3_t angles ) 
+{
+	float	scale;
+	int		delta;
+	float	fracsin;
+
+	VectorCopy( cg.refdef.vieworg, origin );
+	VectorCopy( cg.refdefViewAnglesWeapon, angles );
+	
+	if(vr_ipc_buf != NULL)
+	{
+	    vec3_t vr_r;
+	    vec3_t vr_dir;
+	    float vr_r_x = *(float*)(vr_ipc_buf+(sizeof(float)*0)) / (26.2464f );
+	    float vr_r_y = *(float*)(vr_ipc_buf+(sizeof(float)*1)) / (-26.2464f);
+	    float vr_r_z = *(float*)(vr_ipc_buf+(sizeof(float)*2)) / (26.2464f);
+	    
+	    float vr_r_pitch = *(float*)(vr_ipc_buf+(sizeof(float)*3));
+	    float vr_r_yaw = *(float*)(vr_ipc_buf+(sizeof(float)*4));
+	    float vr_r_roll = *(float*)(vr_ipc_buf+(sizeof(float)*5));
+	    
+	    vr_r[1] = -(vr_r_x * cos(cg.refdefViewAngles[YAW]*(M_PI / 180)) + vr_r_z * sin(cg.refdefViewAngles[YAW]*(M_PI / 180)));
+	    vr_r[0] = -(-vr_r_x * sin(cg.refdefViewAngles[YAW]*(M_PI / 180)) + vr_r_z * cos(cg.refdefViewAngles[YAW]*(M_PI / 180)));
+	    vr_r[2] = vr_r_y;
+	    VectorAdd(origin, vr_r, origin);
+
+	    vr_dir[ROLL] = 0.0f;//vr_r_roll;
+	    vr_dir[YAW] = vr_r_yaw;
+	    vr_dir[PITCH] = 0.0f;//vr_r_pitch;
+	    VectorMA(origin, 0.005f, angles, origin);
+	    
+	    angles[ROLL] = 0.0f;//vr_r_roll;
+	    angles[YAW] += vr_r_yaw;
+	    angles[PITCH] = 0.0f;//vr_r_pitch;
+	    
+	    /*cg.refdefViewAnglesWeapon[ROLL] = vr_r_pitch;
+	    cg.refdefViewAnglesWeapon[YAW] += vr_r_yaw + 180.0f;
+	    cg.refdefViewAnglesWeapon[PITCH] = vr_r_roll;*/
+	}
+
+	// on odd legs, invert some angles
+	if ( cg.bobcycle & 1 ) {
+		scale = -cg.xyspeed;
+	} else {
+		scale = cg.xyspeed;
+	}
+
+	// gun angles from bobbing
+	angles[ROLL] += scale * cg.bobfracsin * 0.0075;
+	angles[YAW] += scale * cg.bobfracsin * 0.01;
+	angles[PITCH] += cg.xyspeed * cg.bobfracsin * 0.0075;
+
+	// drop the weapon when landing
+	delta = cg.time - cg.landTime;
+	if ( delta < LAND_DEFLECT_TIME ) {
+		origin[2] += cg.landChange*0.25 * delta / LAND_DEFLECT_TIME;
+	} else if ( delta < LAND_DEFLECT_TIME + LAND_RETURN_TIME ) {
+		origin[2] += cg.landChange*0.25 * 
+			(LAND_DEFLECT_TIME + LAND_RETURN_TIME - delta) / LAND_RETURN_TIME;
+	}
+
+#if 0
+	// drop the weapon when stair climbing
+	delta = cg.time - cg.stepTime;
+	if ( delta < STEP_TIME/2 ) {
+		origin[2] -= cg.stepChange*0.25 * delta / (STEP_TIME/2);
+	} else if ( delta < STEP_TIME ) {
+		origin[2] -= cg.stepChange*0.25 * (STEP_TIME - delta) / (STEP_TIME/2);
+	}
+#endif
+
+	// idle drift
+	scale = /*cg.xyspeed + */40;
+	fracsin = sin( cg.time * 0.001 );
+	angles[ROLL] += scale * fracsin * 0.01;
+	angles[YAW] += scale * fracsin * 0.01;
+	angles[PITCH] += (scale * 0.5f ) * fracsin * 0.01;
+
 	//angles[ROLL] = 0.0f;
 	//angles[PITCH] = 0.0f;
 }

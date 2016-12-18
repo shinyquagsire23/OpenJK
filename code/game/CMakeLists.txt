@@ -341,6 +341,8 @@ add_library(${SPGame} SHARED ${SPGameFiles})
 if(NOT WIN32)
 	# remove "lib" prefix for .so/.dylib files
 	set_target_properties(${SPGame} PROPERTIES PREFIX "")
+	find_package(LibOVR REQUIRED)
+	set(SPGameIncludeDirectories ${SPGameIncludeDirectories} ${LIBOVR_INCLUDE_DIR})
 endif(NOT WIN32)
 
 if(WIN32)

@@ -595,11 +595,7 @@ static qboolean GLimp_StartDriverAndSetMode(int mode, qboolean fullscreen, qbool
 
 bool GL_CheckForExtension(const char *ext)
 {
-	const char *ptr = Q_stristr( glConfig.extensions_string, ext );
-	if (ptr == NULL)
-		return false;
-	ptr += strlen(ext);
-	return ((*ptr == ' ') || (*ptr == '\0'));  // verify it's complete string.
+	return SDL_GL_ExtensionSupported(ext);
 }
 
 static void GLW_InitTextureCompression( void )

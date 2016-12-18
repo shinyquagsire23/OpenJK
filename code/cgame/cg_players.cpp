@@ -6917,9 +6917,9 @@ Ghoul2 Insert Start
 			{//no viewentity
 				if ( cent->currentState.number == cg.snap->ps.clientNum )
 				{//I am the player
-					if ( cg.snap->ps.weapon != WP_SABER && cg.snap->ps.weapon != WP_MELEE )
+					//if ( cg.snap->ps.weapon != WP_SABER && cg.snap->ps.weapon != WP_MELEE )
 					{//not using saber or fists
-						//HMD: TODO: Make third vs first person models an option
+						//RIPVR HMD: TODO: Make third vs first person models an option
 						ent.renderfx = RF_THIRD_PERSON;			// only draw in mirrors
 					}
 				}
@@ -7419,7 +7419,29 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 								//this returns qfalse if it doesn't exist or isn't being rendered
 								if ( G_GetRootSurfNameWithVariant( cent->gent, "r_hand", handName, sizeof(handName) ) ) //!gi.G2API_GetSurfaceRenderStatus( &cent->gent->ghoul2[cent->gent->playerModel], "r_hand" ) )//surf is still on
 								{
-									CG_AddSaberBladeGo( cent, cent, NULL, ent.renderfx, cent->gent->weaponModel[saberNum], ent.origin, tempAngles, saberNum, bladeNum );
+								    //RIPVR
+								    
+								    extern void CG_CalculateWeaponPositionSaber( vec3_t origin, vec3_t angles );
+			                        refEntity_t	hand;
+			                        vec3_t		angles;
+			                        memset (&hand, 0, sizeof(hand));
+			                        // set up gun position
+	                                CG_CalculateWeaponPositionSaber( hand.origin, angles );
+	                                
+	                                /*
+	                                VectorMA( hand.origin, cg_gun_x.value+extraOffset[0], cg.refdef.viewaxis[0], hand.origin );
+	                                VectorMA( hand.origin, (cg_gun_y.value+leanOffset+extraOffset[1]), cg.refdef.viewaxis[1], hand.origin );
+	                                VectorMA( hand.origin, (cg_gun_z.value+fovOffset+extraOffset[2]), cg.refdef.viewaxis[2], hand.origin );*/
+	                                
+	                                VectorCopy(hand.origin, cent->gent->client->ps.viewangles);
+	
+	                                VectorMA( hand.origin, 0, cg.refdef.viewaxis[0], hand.origin );
+	                                //VectorMA( hand.origin, (0+leanOffset), cg.refdef.viewaxis[1], hand.origin );
+	                                //VectorMA( hand.origin, (0+fovOffset), cg.refdef.viewaxis[2], hand.origin );
+
+	                                AnglesToAxis( angles, hand.axis );
+								    
+									CG_AddSaberBladeGo( cent, cent, NULL, ent.renderfx, NULL, hand.origin, angles, saberNum, bladeNum );
 									//CG_AddSaberBlades( cent, ent.renderfx, ent.origin, tempAngles, saberNum );
 								}//else, the limb will draw the blade itself
 							}
@@ -7428,6 +7450,7 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 								//this returns qfalse if it doesn't exist or isn't being rendered
 								if ( G_GetRootSurfNameWithVariant( cent->gent, "l_hand", handName, sizeof(handName) ) ) //!gi.G2API_GetSurfaceRenderStatus( &cent->gent->ghoul2[cent->gent->playerModel], "l_hand" ) )//surf is still on
 								{
+								    //RIPVR TODO: Right hand pos
 									CG_AddSaberBladeGo( cent, cent, NULL, ent.renderfx, cent->gent->weaponModel[saberNum], ent.origin, tempAngles, saberNum, bladeNum );
 									//CG_AddSaberBlades( cent, ent.renderfx, ent.origin, tempAngles, saberNum );
 								}//else, the limb will draw the blade itself
@@ -8204,66 +8227,70 @@ Ghoul2 Insert End
 				}
 				for ( int saberNum = 0; saberNum < numSabers; saberNum++ )
 				{
-					if ( !cent->gent->client->ps.saber[saberNum].active )//!cent->gent->client->ps.saberActive )
-					{//saber is off
-						if ( cent->gent->client->ps.saber[saberNum].length > 0 )
-						{
-							if ( cent->gent->client->ps.stats[STAT_HEALTH] <= 0 )
-							{//dead, didn't actively turn it off
-								cent->gent->client->ps.saber[saberNum].length -= cent->gent->client->ps.saber[saberNum].lengthMax/10 * cg.frametime/100;
-							}
-							else
-							{//actively turned it off, shrink faster
-								cent->gent->client->ps.saber[saberNum].length -= cent->gent->client->ps.saber[saberNum].lengthMax/3 * cg.frametime/100;
-							}
-						}
-						if ( cent->gent->client->ps.saber[saberNum].length < 0 )
-						{
-							cent->gent->client->ps.saber[saberNum].length = 0;
-						}
-					}
-					else if ( cent->gent->client->ps.saber[saberNum].length < cent->gent->client->ps.saber[saberNum].lengthMax )
-					{//saber is on
-						if ( !cent->gent->client->ps.saber[saberNum].length )
-						{
-							if ( cent->gent->client->ps.saberInFlight )
-							{//play it on the saber
-								cgi_S_UpdateEntityPosition( cent->gent->client->ps.saberEntityNum, g_entities[cent->gent->client->ps.saberEntityNum].currentOrigin );
-								cgi_S_StartSound (NULL, cent->gent->client->ps.saberEntityNum, CHAN_AUTO, cgs.sound_precache[cent->gent->client->ps.saber[0].soundOn] );
-							}
-							else
-							{
-								cgi_S_StartSound (NULL, cent->currentState.number, CHAN_AUTO, cgs.sound_precache[cent->gent->client->ps.saber[0].soundOn] );
-#ifdef _IMMERSION
-								cgi_FF_Start( cgi_FF_Register( "fffx/weapons/saber/saberon", FF_CHANNEL_WEAPON ), cent->currentState.number );
-#endif // _IMMERSION
-							}
-						}
-						cent->gent->client->ps.saber[saberNum].length += cent->gent->client->ps.saber[saberNum].lengthMax/6 * cg.frametime/100;//= saber[saberNum].lengthMax;
-						if ( cent->gent->client->ps.saber[saberNum].length > cent->gent->client->ps.saber[saberNum].lengthMax )
-						{
-							cent->gent->client->ps.saber[saberNum].length = cent->gent->client->ps.saber[saberNum].lengthMax;
-						}
-					}
+				    //loop this and do for both blades
+				    for ( int bladeNum = 0; bladeNum < cent->gent->client->ps.saber[saberNum].numBlades; bladeNum++ )
+				    {
+					    if ( !cent->gent->client->ps.saber[saberNum].blade[bladeNum].active )//!cent->gent->client->ps.saberActive )
+					    {//saber is off
+						    if ( cent->gent->client->ps.saber[saberNum].blade[bladeNum].length > 0 )
+						    {
+							    if ( cent->gent->client->ps.stats[STAT_HEALTH] <= 0 )
+							    {//dead, didn't actively turn it off
+								    cent->gent->client->ps.saber[saberNum].blade[bladeNum].length -= cent->gent->client->ps.saber[saberNum].blade[bladeNum].lengthMax/10 * cg.frametime/100;
+							    }
+							    else
+							    {//actively turned it off, shrink faster
+								    cent->gent->client->ps.saber[saberNum].blade[bladeNum].length -= cent->gent->client->ps.saber[saberNum].blade[bladeNum].lengthMax/3 * cg.frametime/100;
+							    }
+						    }
+						    if ( cent->gent->client->ps.saber[saberNum].blade[bladeNum].length < 0 )
+						    {
+							    cent->gent->client->ps.saber[saberNum].blade[bladeNum].length = 0;
+						    }
+					    }
+					    else if ( cent->gent->client->ps.saber[saberNum].blade[bladeNum].length < cent->gent->client->ps.saber[saberNum].blade[bladeNum].lengthMax )
+					    {//saber is on
+						    if ( !cent->gent->client->ps.saber[saberNum].blade[bladeNum].length )
+						    {
+							    if ( cent->gent->client->ps.saberInFlight )
+							    {//play it on the saber
+								    cgi_S_UpdateEntityPosition( cent->gent->client->ps.saberEntityNum, g_entities[cent->gent->client->ps.saberEntityNum].currentOrigin );
+								    cgi_S_StartSound (NULL, cent->gent->client->ps.saberEntityNum, CHAN_AUTO, cgs.sound_precache[cent->gent->client->ps.saber[0].soundOn] );
+							    }
+							    else
+							    {
+								    cgi_S_StartSound (NULL, cent->currentState.number, CHAN_AUTO, cgs.sound_precache[cent->gent->client->ps.saber[0].soundOn] );
+    #ifdef _IMMERSION
+								    cgi_FF_Start( cgi_FF_Register( "fffx/weapons/saber/saberon", FF_CHANNEL_WEAPON ), cent->currentState.number );
+    #endif // _IMMERSION
+							    }
+						    }
+						    cent->gent->client->ps.saber[saberNum].blade[bladeNum].length += cent->gent->client->ps.saber[saberNum].blade[bladeNum].lengthMax/6 * cg.frametime/100;//= saber[saberNum].lengthMax;
+						    if ( cent->gent->client->ps.saber[saberNum].blade[bladeNum].length > cent->gent->client->ps.saber[saberNum].blade[bladeNum].lengthMax )
+						    {
+							    cent->gent->client->ps.saber[saberNum].blade[bladeNum].length = cent->gent->client->ps.saber[saberNum].blade[bladeNum].lengthMax;
+						    }
+					    }
 
-					if ( cent->gent->client->ps.saberInFlight )
-					{//not holding the saber in-hand
-						drawGun = qfalse;
-					}
-					if ( cent->gent->client->ps.saber[saberNum].length > 0 )
-					{
-						if ( !cent->gent->client->ps.saberInFlight )
-						{//holding the saber in-hand
-							CG_AddSaberBlade( cent, cent, &gun, renderfx, 0, NULL, NULL );
-							calcedMp = qtrue;
-						}
-					}
-					else
-					{
-						//if ( cent->gent->client->ps.saberEventFlags&SEF_INWATER )
-						{
-							CG_CheckSaberInWater( cent, cent, 0, 0, NULL, NULL );
-						}
+					    if ( cent->gent->client->ps.saberInFlight )
+					    {//not holding the saber in-hand
+						    drawGun = qfalse;
+					    }
+					    if ( cent->gent->client->ps.saber[saberNum].blade[bladeNum].length > 0 )
+					    {
+						    if ( !cent->gent->client->ps.saberInFlight )
+						    {//holding the saber in-hand
+							    CG_AddSaberBlade( cent, cent, &gun, renderfx, 0, NULL, NULL );
+							    calcedMp = qtrue;
+						    }
+					    }
+					    else
+					    {
+						    //if ( cent->gent->client->ps.saberEventFlags&SEF_INWATER )
+						    {
+							    CG_CheckSaberInWater( cent, cent, 0, 0, NULL, NULL );
+						    }
+					    }
 					}
 				}
 			}
